@@ -17,3 +17,10 @@ Desktop.ini
 # Temp files
 ~$*
 *.tmp
+
+# Tài liệu (không push)
+*.docx
+*.xlsx
+*.drawio
+*.bpm
+Tai lieu tham khao/

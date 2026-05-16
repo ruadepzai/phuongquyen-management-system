@@ -1,0 +1,19 @@
+# Dependencies
+frontend/node_modules/
+backend/venv/
+
+# Environment
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temp files
+~$*
+*.tmp

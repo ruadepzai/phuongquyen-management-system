@@ -1,0 +1,459 @@
+import { useState } from 'react'
+import {
+  Table, Tag, Button, Input, Space, Card, Row, Col,
+  Statistic, Modal, Descriptions, Badge, Select, DatePicker,
+  Tooltip, Typography, Divider, message
+} from 'antd'
+import {
+  SearchOutlined, EyeOutlined, PrinterOutlined,
+  ShoppingCartOutlined, CheckCircleOutlined,
+  ClockCircleOutlined, SyncOutlined,
+  FilterOutlined, ReloadOutlined
+} from '@ant-design/icons'
+
+const { RangePicker } = DatePicker
+const { Text } = Typography
+
+// ==================== MOCK DATA ====================
+const mockOrders = [
+  {
+    key: '1',
+    maDH: 'HD1-010526',
+    khachHang: 'Nguyễn Văn An',
+    sdt: '0901 234 567',
+    diaChi: '45 Lê Lợi, Quận 1, TP.HCM',
+    ngayDat: '2026-05-01',
+    ngayGiao: '2026-05-03',
+    loai: 'Cỗ cưới',
+    soMam: 15,
+    tongTien: 22500000,
+    trangThai: 'DaGiao',
+    ghiChu: 'Giao trước 10h sáng',
+    chiTiet: [
+      { mon: 'Gà luộc lá chanh', soLuong: 15, donGia: 350000, thanhTien: 5250000 },
+      { mon: 'Nem rán', soLuong: 15, donGia: 200000, thanhTien: 3000000 },
+      { mon: 'Xôi gấc', soLuong: 15, donGia: 150000, thanhTien: 2250000 },
+      { mon: 'Canh măng', soLuong: 15, donGia: 180000, thanhTien: 2700000 },
+      { mon: 'Giò thủ', soLuong: 15, donGia: 250000, thanhTien: 3750000 },
+      { mon: 'Chè sen', soLuong: 15, donGia: 120000, thanhTien: 1800000 },
+      { mon: 'Hoa quả dĩa', soLuong: 15, donGia: 100000, thanhTien: 1500000 },
+      { mon: 'Nước ngọt', soLuong: 15, donGia: 150000, thanhTien: 2250000 },
+    ],
+  },
+  {
+    key: '2',
+    maDH: 'HD2-020526',
+    khachHang: 'Trần Thị Bích',
+    sdt: '0912 345 678',
+    diaChi: '12 Hoàng Diệu, Quận 4, TP.HCM',
+    ngayDat: '2026-05-02',
+    ngayGiao: '2026-05-05',
+    loai: 'Cỗ giỗ',
+    soMam: 8,
+    tongTien: 9600000,
+    trangThai: 'DangDongGoi',
+    ghiChu: '',
+    chiTiet: [
+      { mon: 'Gà luộc lá chanh', soLuong: 8, donGia: 350000, thanhTien: 2800000 },
+      { mon: 'Xôi gấc', soLuong: 8, donGia: 150000, thanhTien: 1200000 },
+      { mon: 'Canh bóng', soLuong: 8, donGia: 200000, thanhTien: 1600000 },
+      { mon: 'Giò lụa', soLuong: 8, donGia: 250000, thanhTien: 2000000 },
+      { mon: 'Chè kho', soLuong: 8, donGia: 250000, thanhTien: 2000000 },
+    ],
+  },
+  {
+    key: '3',
+    maDH: 'HD3-030526',
+    khachHang: 'Lê Hoàng Nam',
+    sdt: '0987 654 321',
+    diaChi: '78 Nguyễn Trãi, Quận 5, TP.HCM',
+    ngayDat: '2026-05-03',
+    ngayGiao: '2026-05-06',
+    loai: 'Tiệc sinh nhật',
+    soMam: 5,
+    tongTien: 7500000,
+    trangThai: 'ChoXuLy',
+    ghiChu: 'Cần thêm bánh kem 3 tầng',
+    chiTiet: [
+      { mon: 'Bò nướng lá lốt', soLuong: 5, donGia: 400000, thanhTien: 2000000 },
+      { mon: 'Gỏi cuốn', soLuong: 5, donGia: 200000, thanhTien: 1000000 },
+      { mon: 'Cơm chiên', soLuong: 5, donGia: 180000, thanhTien: 900000 },
+      { mon: 'Canh chua cá', soLuong: 5, donGia: 220000, thanhTien: 1100000 },
+      { mon: 'Chè thái', soLuong: 5, donGia: 150000, thanhTien: 750000 },
+      { mon: 'Bánh kem', soLuong: 1, donGia: 1750000, thanhTien: 1750000 },
+    ],
+  },
+  {
+    key: '4',
+    maDH: 'HD4-040526',
+    khachHang: 'Phạm Minh Tuấn',
+    sdt: '0976 543 210',
+    diaChi: '156 CMT8, Quận 3, TP.HCM',
+    ngayDat: '2026-05-04',
+    ngayGiao: '2026-05-07',
+    loai: 'Cỗ cưới',
+    soMam: 20,
+    tongTien: 36000000,
+    trangThai: 'ChoXuLy',
+    ghiChu: 'Menu VIP, không dùng tôm (dị ứng)',
+    chiTiet: [
+      { mon: 'Gà hấp hành', soLuong: 20, donGia: 380000, thanhTien: 7600000 },
+      { mon: 'Nem cuốn', soLuong: 20, donGia: 220000, thanhTien: 4400000 },
+      { mon: 'Bò xào lúc lắc', soLuong: 20, donGia: 450000, thanhTien: 9000000 },
+      { mon: 'Xôi gấc', soLuong: 20, donGia: 150000, thanhTien: 3000000 },
+      { mon: 'Chè hạt sen', soLuong: 20, donGia: 200000, thanhTien: 4000000 },
+      { mon: 'Hoa quả dĩa', soLuong: 20, donGia: 100000, thanhTien: 2000000 },
+      { mon: 'Nước uống', soLuong: 20, donGia: 300000, thanhTien: 6000000 },
+    ],
+  },
+  {
+    key: '5',
+    maDH: 'HD5-050526',
+    khachHang: 'Võ Thị Hương',
+    sdt: '0933 111 222',
+    diaChi: '23 Hai Bà Trưng, Quận 1, TP.HCM',
+    ngayDat: '2026-05-05',
+    ngayGiao: '2026-05-08',
+    loai: 'Cỗ giỗ',
+    soMam: 10,
+    tongTien: 12000000,
+    trangThai: 'DaGiao',
+    ghiChu: '',
+    chiTiet: [
+      { mon: 'Gà luộc', soLuong: 10, donGia: 350000, thanhTien: 3500000 },
+      { mon: 'Xôi gấc', soLuong: 10, donGia: 150000, thanhTien: 1500000 },
+      { mon: 'Giò chả', soLuong: 10, donGia: 250000, thanhTien: 2500000 },
+      { mon: 'Canh măng', soLuong: 10, donGia: 180000, thanhTien: 1800000 },
+      { mon: 'Nem rán', soLuong: 10, donGia: 200000, thanhTien: 2000000 },
+      { mon: 'Chè kho', soLuong: 10, donGia: 70000, thanhTien: 700000 },
+    ],
+  },
+  {
+    key: '6',
+    maDH: 'HD6-060526',
+    khachHang: 'Đặng Quốc Việt',
+    sdt: '0909 888 777',
+    diaChi: '90 Điện Biên Phủ, Bình Thạnh, TP.HCM',
+    ngayDat: '2026-05-06',
+    ngayGiao: '2026-05-09',
+    loai: 'Tiệc liên hoan',
+    soMam: 12,
+    tongTien: 18000000,
+    trangThai: 'DangDongGoi',
+    ghiChu: 'Giao tầng 5, có thang máy',
+    chiTiet: [
+      { mon: 'Bò sốt tiêu đen', soLuong: 12, donGia: 400000, thanhTien: 4800000 },
+      { mon: 'Cá chiên giòn', soLuong: 12, donGia: 300000, thanhTien: 3600000 },
+      { mon: 'Gỏi ngó sen', soLuong: 12, donGia: 200000, thanhTien: 2400000 },
+      { mon: 'Xôi vò', soLuong: 12, donGia: 150000, thanhTien: 1800000 },
+      { mon: 'Canh cua', soLuong: 12, donGia: 200000, thanhTien: 2400000 },
+      { mon: 'Chè thập cẩm', soLuong: 12, donGia: 250000, thanhTien: 3000000 },
+    ],
+  },
+]
+
+// Mapping trạng thái
+const statusConfig = {
+  ChoXuLy:     { text: 'Chờ xử lý',     color: 'gold',    icon: <ClockCircleOutlined /> },
+  DangDongGoi: { text: 'Đang đóng gói', color: 'processing', icon: <SyncOutlined spin /> },
+  DaGiao:      { text: 'Đã giao',       color: 'success', icon: <CheckCircleOutlined /> },
+}
+
+// Format tiền VNĐ
+function formatVND(value) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+}
+
+// ==================== COMPONENT ====================
+export default function DonHang() {
+  const [searchText, setSearchText] = useState('')
+  const [filterStatus, setFilterStatus] = useState(null)
+  const [detailVisible, setDetailVisible] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+
+  // Lọc đơn hàng
+  const filteredOrders = mockOrders.filter((order) => {
+    const matchSearch =
+      order.maDH.toLowerCase().includes(searchText.toLowerCase()) ||
+      order.khachHang.toLowerCase().includes(searchText.toLowerCase()) ||
+      order.sdt.includes(searchText)
+    const matchStatus = filterStatus ? order.trangThai === filterStatus : true
+    return matchSearch && matchStatus
+  })
+
+  // Mở modal chi tiết
+  const showDetail = (record) => {
+    setSelectedOrder(record)
+    setDetailVisible(true)
+  }
+
+  // Tính thống kê
+  const totalOrders = mockOrders.length
+  const pending = mockOrders.filter((o) => o.trangThai === 'ChoXuLy').length
+  const packing = mockOrders.filter((o) => o.trangThai === 'DangDongGoi').length
+  const delivered = mockOrders.filter((o) => o.trangThai === 'DaGiao').length
+
+  // Cột bảng
+  const columns = [
+    {
+      title: 'Mã đơn',
+      dataIndex: 'maDH',
+      key: 'maDH',
+      width: 140,
+      render: (text) => <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>,
+    },
+    {
+      title: 'Khách hàng',
+      dataIndex: 'khachHang',
+      key: 'khachHang',
+      render: (text, record) => (
+        <div>
+          <Text strong>{text}</Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: 13 }}>{record.sdt}</Text>
+        </div>
+      ),
+    },
+    {
+      title: 'Loại tiệc',
+      dataIndex: 'loai',
+      key: 'loai',
+      width: 130,
+      render: (text) => <Tag style={{ borderRadius: 12 }}>{text}</Tag>,
+    },
+    {
+      title: 'Số mâm',
+      dataIndex: 'soMam',
+      key: 'soMam',
+      width: 90,
+      align: 'center',
+      sorter: (a, b) => a.soMam - b.soMam,
+    },
+    {
+      title: 'Ngày giao',
+      dataIndex: 'ngayGiao',
+      key: 'ngayGiao',
+      width: 120,
+      sorter: (a, b) => new Date(a.ngayGiao) - new Date(b.ngayGiao),
+    },
+    {
+      title: 'Tổng tiền',
+      dataIndex: 'tongTien',
+      key: 'tongTien',
+      width: 150,
+      align: 'right',
+      render: (value) => <Text strong>{formatVND(value)}</Text>,
+      sorter: (a, b) => a.tongTien - b.tongTien,
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
+      width: 160,
+      render: (status) => {
+        const cfg = statusConfig[status]
+        return <Tag icon={cfg.icon} color={cfg.color} style={{ borderRadius: 12 }}>{cfg.text}</Tag>
+      },
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      width: 120,
+      align: 'center',
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Xem chi tiết">
+            <Button type="text" icon={<EyeOutlined />} onClick={() => showDetail(record)} />
+          </Tooltip>
+          <Tooltip title="In phiếu">
+            <Button type="text" icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')} />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ]
+
+  // Cột bảng chi tiết món
+  const detailColumns = [
+    { title: 'Tên món', dataIndex: 'mon', key: 'mon' },
+    { title: 'SL', dataIndex: 'soLuong', key: 'soLuong', width: 60, align: 'center' },
+    {
+      title: 'Đơn giá',
+      dataIndex: 'donGia',
+      key: 'donGia',
+      width: 130,
+      align: 'right',
+      render: (v) => formatVND(v),
+    },
+    {
+      title: 'Thành tiền',
+      dataIndex: 'thanhTien',
+      key: 'thanhTien',
+      width: 140,
+      align: 'right',
+      render: (v) => <Text strong>{formatVND(v)}</Text>,
+    },
+  ]
+
+  return (
+    <div>
+      <h2 className="dashboard-title">Quản lý Đơn hàng</h2>
+
+      {/* Thống kê nhanh */}
+      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
+            <Statistic title="Tổng đơn" value={totalOrders} prefix={<ShoppingCartOutlined />} />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
+            <Statistic title="Chờ xử lý" value={pending} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#faad14' }} />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
+            <Statistic title="Đang đóng gói" value={packing} prefix={<SyncOutlined />} valueStyle={{ color: '#1890ff' }} />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
+            <Statistic title="Đã giao" value={delivered} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Thanh lọc */}
+      <Card bordered={false} className="glass-effect" style={{ borderRadius: 16, marginBottom: 20 }}>
+        <Row gutter={[16, 12]} align="middle">
+          <Col xs={24} sm={8}>
+            <Input
+              placeholder="Tìm mã đơn, tên KH, SĐT..."
+              prefix={<SearchOutlined style={{ color: '#aaa' }} />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              style={{ borderRadius: 10 }}
+            />
+          </Col>
+          <Col xs={12} sm={5}>
+            <Select
+              placeholder="Trạng thái"
+              value={filterStatus}
+              onChange={(val) => setFilterStatus(val)}
+              allowClear
+              style={{ width: '100%', borderRadius: 10 }}
+              options={[
+                { value: 'ChoXuLy', label: '⏳ Chờ xử lý' },
+                { value: 'DangDongGoi', label: '📦 Đang đóng gói' },
+                { value: 'DaGiao', label: '✅ Đã giao' },
+              ]}
+            />
+          </Col>
+          <Col xs={12} sm={7}>
+            <RangePicker style={{ width: '100%', borderRadius: 10 }} placeholder={['Từ ngày', 'Đến ngày']} />
+          </Col>
+          <Col xs={24} sm={4} style={{ textAlign: 'right' }}>
+            <Tooltip title="Làm mới">
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => { setSearchText(''); setFilterStatus(null); }}
+                style={{ borderRadius: 10 }}
+              >
+                Làm mới
+              </Button>
+            </Tooltip>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Bảng đơn hàng */}
+      <Card bordered={false} className="glass-effect" style={{ borderRadius: 16 }}>
+        <Table
+          columns={columns}
+          dataSource={filteredOrders}
+          pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Tổng ${total} đơn hàng` }}
+          scroll={{ x: 900 }}
+          rowClassName="order-row"
+        />
+      </Card>
+
+      {/* Modal chi tiết */}
+      <Modal
+        title={
+          selectedOrder && (
+            <Space>
+              <Text strong style={{ fontSize: 18 }}>Chi tiết đơn {selectedOrder.maDH}</Text>
+              <Tag
+                icon={statusConfig[selectedOrder.trangThai].icon}
+                color={statusConfig[selectedOrder.trangThai].color}
+                style={{ borderRadius: 12 }}
+              >
+                {statusConfig[selectedOrder.trangThai].text}
+              </Tag>
+            </Space>
+          )
+        }
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={[
+          <Button key="print" icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')}>
+            In phiếu
+          </Button>,
+          <Button key="close" type="primary" onClick={() => setDetailVisible(false)}>
+            Đóng
+          </Button>,
+        ]}
+        width={720}
+      >
+        {selectedOrder && (
+          <>
+            <Descriptions
+              bordered
+              size="small"
+              column={2}
+              style={{ marginBottom: 20 }}
+              labelStyle={{ fontWeight: 600, background: 'rgba(91,141,239,0.05)' }}
+            >
+              <Descriptions.Item label="Khách hàng">{selectedOrder.khachHang}</Descriptions.Item>
+              <Descriptions.Item label="SĐT">{selectedOrder.sdt}</Descriptions.Item>
+              <Descriptions.Item label="Loại tiệc">{selectedOrder.loai}</Descriptions.Item>
+              <Descriptions.Item label="Số mâm">{selectedOrder.soMam}</Descriptions.Item>
+              <Descriptions.Item label="Ngày đặt">{selectedOrder.ngayDat}</Descriptions.Item>
+              <Descriptions.Item label="Ngày giao">{selectedOrder.ngayGiao}</Descriptions.Item>
+              <Descriptions.Item label="Địa chỉ giao" span={2}>{selectedOrder.diaChi}</Descriptions.Item>
+              {selectedOrder.ghiChu && (
+                <Descriptions.Item label="Ghi chú" span={2}>
+                  <Text type="warning">{selectedOrder.ghiChu}</Text>
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+
+            <Divider orientation="left" style={{ fontSize: 15 }}>Danh sách món</Divider>
+
+            <Table
+              columns={detailColumns}
+              dataSource={selectedOrder.chiTiet.map((item, i) => ({ ...item, key: i }))}
+              pagination={false}
+              size="small"
+              summary={() => (
+                <Table.Summary fixed>
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={3} align="right">
+                      <Text strong style={{ fontSize: 15 }}>TỔNG CỘNG:</Text>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={1} align="right">
+                      <Text strong style={{ fontSize: 15, color: 'var(--primary)' }}>
+                        {formatVND(selectedOrder.tongTien)}
+                      </Text>
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
+                </Table.Summary>
+              )}
+            />
+          </>
+        )}
+      </Modal>
+    </div>
+  )
+}

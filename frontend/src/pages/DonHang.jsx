@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
-  Table, Tag, Button, Input, Space, Card, Row, Col,
+  Table, Tag, Button, Input, Space, Card, Row, Col, Collapse,
   Statistic, Modal, Descriptions, Badge, Select, DatePicker,
   Tooltip, Typography, Divider, message
 } from 'antd'
@@ -8,7 +8,8 @@ import {
   SearchOutlined, EyeOutlined, PrinterOutlined,
   ShoppingCartOutlined, CheckCircleOutlined,
   ClockCircleOutlined, SyncOutlined,
-  FilterOutlined, ReloadOutlined
+  FilterOutlined, ReloadOutlined, CalendarOutlined,
+  CaretRightOutlined
 } from '@ant-design/icons'
 
 const { RangePicker } = DatePicker
@@ -23,7 +24,7 @@ const mockOrders = [
     sdt: '0901 234 567',
     diaChi: '45 Lê Lợi, Quận 1, TP.HCM',
     ngayDat: '2026-05-01',
-    ngayGiao: '2026-05-03',
+    ngayGiao: '2026-05-05',
     loai: 'Cỗ cưới',
     soMam: 15,
     tongTien: 22500000,
@@ -68,7 +69,7 @@ const mockOrders = [
     sdt: '0987 654 321',
     diaChi: '78 Nguyễn Trãi, Quận 5, TP.HCM',
     ngayDat: '2026-05-03',
-    ngayGiao: '2026-05-06',
+    ngayGiao: '2026-05-07',
     loai: 'Tiệc sinh nhật',
     soMam: 5,
     tongTien: 7500000,
@@ -113,7 +114,7 @@ const mockOrders = [
     sdt: '0933 111 222',
     diaChi: '23 Hai Bà Trưng, Quận 1, TP.HCM',
     ngayDat: '2026-05-05',
-    ngayGiao: '2026-05-08',
+    ngayGiao: '2026-05-07',
     loai: 'Cỗ giỗ',
     soMam: 10,
     tongTien: 12000000,
@@ -367,15 +368,59 @@ export default function DonHang() {
         </Row>
       </Card>
 
-      {/* Bảng đơn hàng */}
+      {/* Đơn hàng nhóm theo ngày giao */}
       <Card bordered={false} className="glass-effect" style={{ borderRadius: 16 }}>
-        <Table
-          columns={columns}
-          dataSource={filteredOrders}
-          pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Tổng ${total} đơn hàng` }}
-          scroll={{ x: 900 }}
-          rowClassName="order-row"
-        />
+        {(() => {
+          // Group by ngayGiao
+          const grouped = {}
+          filteredOrders.forEach(o => {
+            if (!grouped[o.ngayGiao]) grouped[o.ngayGiao] = []
+            grouped[o.ngayGiao].push(o)
+          })
+          const sortedDates = Object.keys(grouped).sort()
+
+          if (sortedDates.length === 0) return <div style={{ textAlign: 'center', padding: 40 }}><Text type="secondary">Không tìm thấy đơn hàng</Text></div>
+
+          return (
+            <Collapse
+              defaultActiveKey={sortedDates}
+              expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
+              style={{ background: 'transparent', border: 'none' }}
+              items={sortedDates.map(date => {
+                const orders = grouped[date]
+                const tongMam = orders.reduce((s, o) => s + o.soMam, 0)
+                const tongTien = orders.reduce((s, o) => s + o.tongTien, 0)
+                return {
+                  key: date,
+                  label: (
+                    <Space size={16}>
+                      <Text strong style={{ fontSize: 15, color: '#5b8def' }}>
+                        <CalendarOutlined style={{ marginRight: 6 }} />{date}
+                      </Text>
+                      <Tag color="blue">{orders.length} đơn</Tag>
+                      <Tag color="green">{tongMam} mâm</Tag>
+                      <Tag color="orange">{formatVND(tongTien)}</Tag>
+                    </Space>
+                  ),
+                  children: (
+                    <Table
+                      columns={columns}
+                      dataSource={orders}
+                      pagination={false}
+                      scroll={{ x: 900 }}
+                      rowClassName="order-row"
+                      size="middle"
+                      onRow={(record) => ({
+                        onClick: () => showDetail(record),
+                        style: { cursor: 'pointer' },
+                      })}
+                    />
+                  ),
+                }
+              })}
+            />
+          )
+        })()}
       </Card>
 
       {/* Modal chi tiết */}

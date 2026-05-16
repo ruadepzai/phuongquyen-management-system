@@ -8,7 +8,8 @@ import {
   ShoppingCartOutlined, CalendarOutlined, SearchOutlined,
   InboxOutlined, TeamOutlined, CheckCircleOutlined,
   ExperimentOutlined, BarChartOutlined, CaretRightOutlined, PlusOutlined,
-  PhoneOutlined, EnvironmentOutlined
+  PhoneOutlined, EnvironmentOutlined, PrinterOutlined, HistoryOutlined,
+  FileTextOutlined, SaveOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
@@ -204,8 +205,14 @@ export default function NguyenLieu() {
   // ===== TAB 2: Dự trù theo ngày (INTERACTIVE) =====
   const [duTruState, setDuTruState] = useState({})
 
+  const [lichSuPhieu, setLichSuPhieu] = useState([])
+
   const handleTinhDuTru = (dateStr) => {
     const dons = mockDonHangTheoNgay[dateStr]
+    if (!dons || dons.length === 0) {
+      Modal.error({ title: 'Không có đơn hàng', content: `Ngày ${dayjs(dateStr).format('DD/MM/YYYY')} chưa có đơn hàng nào được chốt.` })
+      return
+    }
     const result = tinhDuTru(dons)
     const dataWithEdit = result.map(r => ({
       ...r, slThucNhap: r.tongSL, nccChon: r.nccList[0]?.ma || '', ghiChu: '',
@@ -222,9 +229,20 @@ export default function NguyenLieu() {
     })
   }
 
-  const handleXacNhan = (dateStr) => {
-    setDuTruState(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], status: 'DaDuTru' } }))
-    message.success(`Đã xác nhận dự trù ngày ${dayjs(dateStr).format('DD/MM/YYYY')}!`)
+  const handleTaoPhieu = (dateStr) => {
+    setDuTruState(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], status: 'DaPhieu' } }))
+    message.success(`Đã tạo phiếu đặt hàng ngày ${dayjs(dateStr).format('DD/MM/YYYY')}!`)
+  }
+
+  const handleLuuPhieu = (dateStr) => {
+    const state = duTruState[dateStr]
+    const maPhieu = 'PDH' + String(lichSuPhieu.length + 1).padStart(3, '0')
+    setLichSuPhieu(prev => [...prev, {
+      key: maPhieu, maPhieu, ngay: dateStr, thoiGian: dayjs().format('DD/MM/YYYY HH:mm'),
+      soNL: state.data.length, data: state.data,
+    }])
+    setDuTruState(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], status: 'DaLuu' } }))
+    message.success(`Đã lưu phiếu ${maPhieu}!`)
   }
 
   const handleSuaLai = (dateStr) => {
@@ -290,7 +308,7 @@ export default function NguyenLieu() {
             </div>
           )}
 
-          {(isEditable || isDone) && (
+          {state.status !== 'ChuaTinh' && (
             <Table size="small" pagination={false} dataSource={state.data}
               columns={[
                 { title: 'Nguyên liệu', dataIndex: 'ten', width: 140, render: v => <Text strong>{v}</Text> },
@@ -298,20 +316,20 @@ export default function NguyenLieu() {
                 { title: 'SL Đề xuất', dataIndex: 'tongSL', width: 100, align: 'center',
                   render: v => <Tag color="blue" style={{ borderRadius: 8 }}>{v}</Tag> },
                 { title: 'SL Thực nhập', dataIndex: 'slThucNhap', width: 130, align: 'center',
-                  render: (v, r) => isDone
+                  render: (v, r) => (state.status === 'DaPhieu' || state.status === 'DaLuu')
                     ? <Tag color="red" style={{ fontWeight: 700, borderRadius: 8 }}>{v} {r.donVi}</Tag>
                     : <Input type="number" value={v} size="small" style={{ width: 90, textAlign: 'center' }}
                         onChange={e => handleUpdateRow(dateStr, r.ma, 'slThucNhap', parseFloat(e.target.value) || 0)} />
                 },
-                { title: 'NCC', dataIndex: 'nccChon', width: 160,
-                  render: (v, r) => isDone
-                    ? <Tag color="geekblue">{mockNCC.find(n => n.ma === v)?.ten || '—'}</Tag>
-                    : <Select size="small" value={v} style={{ width: 140 }}
+                { title: 'NCC', dataIndex: 'nccChon', width: 200,
+                  render: (v, r) => (isDone || state.status === 'DaPhieu' || state.status === 'DaLuu')
+                    ? <Tag color="geekblue">{(() => { const n = mockNCC.find(x => x.ma === v); return n ? `${n.ten} - ${n.sdt}` : '—' })()}</Tag>
+                    : <Select size="small" value={v} style={{ width: 190 }}
                         onChange={val => handleUpdateRow(dateStr, r.ma, 'nccChon', val)}
-                        options={r.nccList.map(n => ({ value: n.ma, label: n.ten }))} />
+                        options={r.nccList.map(n => ({ value: n.ma, label: `${n.ten} - ${n.sdt}` }))} />
                 },
                 { title: 'Ghi chú', dataIndex: 'ghiChu',
-                  render: (v, r) => isDone
+                  render: (v, r) => (state.status === 'DaPhieu' || state.status === 'DaLuu')
                     ? <Text type="secondary">{v || '—'}</Text>
                     : <Input size="small" value={v} placeholder="VD: dư phòng..."
                         onChange={e => handleUpdateRow(dateStr, r.ma, 'ghiChu', e.target.value)} />
@@ -321,17 +339,24 @@ export default function NguyenLieu() {
 
           {isEditable && (
             <div style={{ textAlign: 'right' }}>
-              <Button type="primary" icon={<CheckCircleOutlined />} size="large"
-                onClick={() => handleXacNhan(dateStr)} style={{ borderRadius: 12, height: 44, paddingInline: 28 }}>
-                Xác nhận dự trù
+              <Button type="primary" icon={<FileTextOutlined />} size="large"
+                onClick={() => handleTaoPhieu(dateStr)} style={{ borderRadius: 12, height: 44, paddingInline: 28 }}>
+                Tạo phiếu đặt hàng
               </Button>
             </div>
           )}
-          {isDone && (
+          {state.status === 'DaPhieu' && (
             <div style={{ textAlign: 'right' }}>
-              <Button icon={<ExperimentOutlined />} onClick={() => handleSuaLai(dateStr)} style={{ borderRadius: 12 }}>
-                Sửa lại
-              </Button>
+              <Space>
+                <Button icon={<ExperimentOutlined />} onClick={() => handleSuaLai(dateStr)} style={{ borderRadius: 12 }}>Sửa lại</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleLuuPhieu(dateStr)} style={{ borderRadius: 12 }}>Lưu phiếu đặt hàng</Button>
+                <Button icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')} style={{ borderRadius: 12 }}>In phiếu</Button>
+              </Space>
+            </div>
+          )}
+          {state.status === 'DaLuu' && (
+            <div style={{ textAlign: 'right' }}>
+              <Tag color="success" icon={<CheckCircleOutlined />} style={{ fontSize: 14, padding: '4px 12px' }}>Phiếu đã lưu</Tag>
             </div>
           )}
         </div>
@@ -371,27 +396,32 @@ export default function NguyenLieu() {
             </Col>
           </Row>
 
-          <Card title={<span><ExperimentOutlined /> Danh sách nguyên liệu</span>}
-            style={glassCard} styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' } }}
-            extra={
-              <Space>
-                <Input placeholder="Tìm nguyên liệu..." prefix={<SearchOutlined />}
-                  style={{ width: 220 }} allowClear
-                  onChange={e => setSearchText(e.target.value)} value={searchText} />
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddModalOpen(true)}>
-                  Thêm NL
-                </Button>
-              </Space>
-            }>
-            <Table columns={columnsNL} dataSource={filteredNL.map(n => ({ ...n, key: n.ma }))}
-              pagination={false} size="middle" />
-          </Card>
-
-          <Card title={<span><TeamOutlined /> Nhà cung cấp</span>}
-            style={glassCard} styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' } }}>
-            <Table columns={columnsNCC} dataSource={mockNCC.map(n => ({ ...n, key: n.ma }))}
-              pagination={false} size="middle" />
-          </Card>
+          <Tabs defaultActiveKey="nl" size="small" items={[
+            { key: 'nl', label: <span><ExperimentOutlined /> Danh sách nguyên liệu</span>,
+              children: (
+                <Card style={glassCard} styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' } }}
+                  extra={
+                    <Space>
+                      <Input placeholder="Tìm nguyên liệu..." prefix={<SearchOutlined />}
+                        style={{ width: 220 }} allowClear
+                        onChange={e => setSearchText(e.target.value)} value={searchText} />
+                      <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddModalOpen(true)}>Thêm NL</Button>
+                    </Space>
+                  }>
+                  <Table columns={columnsNL} dataSource={filteredNL.map(n => ({ ...n, key: n.ma }))}
+                    pagination={false} size="middle" />
+                </Card>
+              ),
+            },
+            { key: 'ncc', label: <span><TeamOutlined /> Nhà cung cấp</span>,
+              children: (
+                <Card style={glassCard} styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' } }}>
+                  <Table columns={columnsNCC} dataSource={mockNCC.map(n => ({ ...n, key: n.ma }))}
+                    pagination={false} size="middle" />
+                </Card>
+              ),
+            },
+          ]} />
         </div>
       ),
     },
@@ -438,6 +468,29 @@ export default function NguyenLieu() {
         </div>
       ),
     },
+    {
+      key: 'lichsu',
+      label: <span><HistoryOutlined style={{ marginRight: 6 }} />Lịch sử phiếu đặt</span>,
+      children: (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {lichSuPhieu.length === 0 ? (
+            <Card style={glassCard}><Empty description="Chưa có phiếu đặt hàng nào" /></Card>
+          ) : (
+            <Card style={glassCard}>
+              <Table size="middle" pagination={false}
+                dataSource={lichSuPhieu}
+                columns={[
+                  { title: 'Mã phiếu', dataIndex: 'maPhieu', width: 120, render: v => <Text strong style={{ color: '#5b8def' }}>{v}</Text> },
+                  { title: 'Ngày giao', dataIndex: 'ngay', width: 120, render: v => dayjs(v).format('DD/MM/YYYY') },
+                  { title: 'Thời gian tạo', dataIndex: 'thoiGian', width: 160 },
+                  { title: 'Số NL', dataIndex: 'soNL', width: 80, align: 'center', render: v => <Tag color="blue">{v}</Tag> },
+                  { title: 'Thao tác', width: 100, render: () => <Button size="small" icon={<PrinterOutlined />}>In</Button> },
+                ]} />
+            </Card>
+          )}
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -471,6 +524,7 @@ export default function NguyenLieu() {
               { value: 'quả', label: 'quả' },
               { value: 'bìa', label: 'bìa' },
               { value: 'lít', label: 'lít' },
+              { value: 'chai', label: 'chai' },
               { value: 'gói', label: 'gói' },
               { value: 'hộp', label: 'hộp' },
             ]} />

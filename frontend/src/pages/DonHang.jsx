@@ -2,14 +2,14 @@ import { useState, useMemo } from 'react'
 import {
   Table, Tag, Button, Input, Space, Card, Row, Col, Collapse,
   Statistic, Modal, Descriptions, Badge, Select, DatePicker,
-  Tooltip, Typography, Divider, message
+  Tooltip, Typography, Divider, message, Form, InputNumber
 } from 'antd'
 import {
   SearchOutlined, EyeOutlined, PrinterOutlined,
   ShoppingCartOutlined, CheckCircleOutlined,
   ClockCircleOutlined, SyncOutlined,
   FilterOutlined, ReloadOutlined, CalendarOutlined,
-  CaretRightOutlined
+  CaretRightOutlined, PlusOutlined, DollarOutlined
 } from '@ant-design/icons'
 
 const { RangePicker } = DatePicker
@@ -158,6 +158,8 @@ const statusConfig = {
   ChoXuLy:     { text: 'Chờ xử lý',     color: 'gold',    icon: <ClockCircleOutlined /> },
   DangDongGoi: { text: 'Đang đóng gói', color: 'processing', icon: <SyncOutlined spin /> },
   DaGiao:      { text: 'Đã giao',       color: 'success', icon: <CheckCircleOutlined /> },
+  DaThanhToanCoc: { text: 'Đã TT cọc', color: 'cyan', icon: <DollarOutlined /> },
+  ChuaThanhToanCoc: { text: 'Chưa TT cọc', color: 'volcano', icon: <ClockCircleOutlined /> },
 }
 
 // Format tiền VNĐ
@@ -171,9 +173,58 @@ export default function DonHang() {
   const [filterStatus, setFilterStatus] = useState(null)
   const [detailVisible, setDetailVisible] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [orders, setOrders] = useState(mockOrders)
+  const [createVisible, setCreateVisible] = useState(false)
+  const [createForm] = Form.useForm()
+
+  // Danh sách thực đơn mẫu
+  const menuOptions = [
+    { value: 'Gà luộc lá chanh', don: 350000 },
+    { value: 'Nem rán', don: 200000 },
+    { value: 'Xôi gấc', don: 150000 },
+    { value: 'Canh măng', don: 180000 },
+    { value: 'Giò thủ', don: 250000 },
+    { value: 'Chè sen', don: 120000 },
+    { value: 'Tôm hấp bia', don: 400000 },
+    { value: 'Thịt lợn quay', don: 300000 },
+    { value: 'Cá chép om dưa', don: 280000 },
+  ]
+
+  const handleCreateOrder = () => {
+    createForm.validateFields().then(vals => {
+      const monChon = vals.thucDon || []
+      const soMam = vals.soMam || 1
+      const chiTiet = monChon.map(ten => {
+        const m = menuOptions.find(x => x.value === ten)
+        return { mon: ten, soLuong: soMam, donGia: m?.don || 0, thanhTien: (m?.don || 0) * soMam }
+      })
+      const tongTien = chiTiet.reduce((s, c) => s + c.thanhTien, 0)
+      const tienCoc = Math.round(tongTien * 0.2)
+      const newOrder = {
+        key: String(orders.length + 1),
+        maDH: `HD${orders.length + 1}-${new Date().toLocaleDateString('vi', {day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'')}`,
+        khachHang: vals.khachHang,
+        sdt: vals.sdt,
+        diaChi: vals.diaChi,
+        ngayDat: new Date().toISOString().split('T')[0],
+        ngayGiao: vals.ngayGiao?.format('YYYY-MM-DD') || '',
+        loai: vals.loai || 'Cỗ khác',
+        soMam,
+        tongTien,
+        tienCoc,
+        trangThai: vals.daCoc ? 'DaThanhToanCoc' : 'ChuaThanhToanCoc',
+        ghiChu: vals.ghiChu || '',
+        chiTiet,
+      }
+      setOrders(prev => [...prev, newOrder])
+      message.success('Đã thêm đơn hàng thành công!')
+      createForm.resetFields()
+      setCreateVisible(false)
+    })
+  }
 
   // Lọc đơn hàng
-  const filteredOrders = mockOrders.filter((order) => {
+  const filteredOrders = orders.filter((order) => {
     const matchSearch =
       order.maDH.toLowerCase().includes(searchText.toLowerCase()) ||
       order.khachHang.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -189,10 +240,10 @@ export default function DonHang() {
   }
 
   // Tính thống kê
-  const totalOrders = mockOrders.length
-  const pending = mockOrders.filter((o) => o.trangThai === 'ChoXuLy').length
-  const packing = mockOrders.filter((o) => o.trangThai === 'DangDongGoi').length
-  const delivered = mockOrders.filter((o) => o.trangThai === 'DaGiao').length
+  const totalOrders = orders.length
+  const pending = orders.filter((o) => o.trangThai === 'ChoXuLy' || o.trangThai === 'ChuaThanhToanCoc').length
+  const packing = orders.filter((o) => o.trangThai === 'DangDongGoi').length
+  const delivered = orders.filter((o) => o.trangThai === 'DaGiao').length
 
   // Cột bảng
   const columns = [
@@ -326,10 +377,10 @@ export default function DonHang() {
 
       {/* Thanh lọc */}
       <Card bordered={false} className="glass-effect" style={{ borderRadius: 16, marginBottom: 20 }}>
-        <Row gutter={[16, 12]} align="middle">
-          <Col xs={24} sm={8}>
+        <Row gutter={[12, 12]} align="middle">
+          <Col xs={24} sm={6}>
             <Input
-              placeholder="Tìm mã đơn, tên KH, SĐT..."
+              placeholder="Tìm mã đơn, KH, SĐT..."
               prefix={<SearchOutlined style={{ color: '#aaa' }} />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -337,7 +388,7 @@ export default function DonHang() {
               style={{ borderRadius: 10 }}
             />
           </Col>
-          <Col xs={12} sm={5}>
+          <Col xs={12} sm={4}>
             <Select
               placeholder="Trạng thái"
               value={filterStatus}
@@ -351,19 +402,17 @@ export default function DonHang() {
               ]}
             />
           </Col>
-          <Col xs={12} sm={7}>
+          <Col xs={12} sm={6}>
             <RangePicker style={{ width: '100%', borderRadius: 10 }} placeholder={['Từ ngày', 'Đến ngày']} />
           </Col>
-          <Col xs={24} sm={4} style={{ textAlign: 'right' }}>
-            <Tooltip title="Làm mới">
-              <Button
-                icon={<ReloadOutlined />}
+          <Col xs={24} sm={8} style={{ textAlign: 'right' }}>
+            <Space>
+              <Button icon={<ReloadOutlined />}
                 onClick={() => { setSearchText(''); setFilterStatus(null); }}
-                style={{ borderRadius: 10 }}
-              >
-                Làm mới
-              </Button>
-            </Tooltip>
+                style={{ borderRadius: 10 }}>Làm mới</Button>
+              <Button type="primary" icon={<PlusOutlined />}
+                onClick={() => setCreateVisible(true)} style={{ borderRadius: 10 }}>Tạo đơn mới</Button>
+            </Space>
           </Col>
         </Row>
       </Card>
@@ -467,6 +516,21 @@ export default function DonHang() {
               <Descriptions.Item label="Ngày đặt">{selectedOrder.ngayDat}</Descriptions.Item>
               <Descriptions.Item label="Ngày giao">{selectedOrder.ngayGiao}</Descriptions.Item>
               <Descriptions.Item label="Địa chỉ giao" span={2}>{selectedOrder.diaChi}</Descriptions.Item>
+              <Descriptions.Item label="Tiền cọc (20%)">
+                <Text strong style={{ color: '#52c41a' }}>{formatVND(selectedOrder.tienCoc || Math.round(selectedOrder.tongTien * 0.2))}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái cọc">
+                {(selectedOrder.trangThai === 'ChuaThanhToanCoc') ? (
+                  <Button size="small" type="primary" style={{ borderRadius: 8 }}
+                    onClick={() => {
+                      setOrders(prev => prev.map(o => o.key === selectedOrder.key ? { ...o, trangThai: 'DaThanhToanCoc' } : o))
+                      setSelectedOrder(prev => ({ ...prev, trangThai: 'DaThanhToanCoc' }))
+                      message.success('Đã cập nhật trạng thái thanh toán cọc!')
+                    }}>✅ Xác nhận đã cọc</Button>
+                ) : selectedOrder.trangThai === 'DaThanhToanCoc' ? (
+                  <Tag color="cyan">Đã thanh toán cọc</Tag>
+                ) : null}
+              </Descriptions.Item>
               {selectedOrder.ghiChu && (
                 <Descriptions.Item label="Ghi chú" span={2}>
                   <Text type="warning">{selectedOrder.ghiChu}</Text>
@@ -498,6 +562,65 @@ export default function DonHang() {
             />
           </>
         )}
+      </Modal>
+
+      {/* Modal tạo đơn hàng mới */}
+      <Modal title="Tạo đơn hàng mới" open={createVisible} width={640}
+        onOk={handleCreateOrder} onCancel={() => { setCreateVisible(false); createForm.resetFields() }}
+        okText="Xác nhận đơn" cancelText="Hủy">
+        <Form form={createForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="khachHang" label="Tên khách hàng" rules={[{ required: true, message: 'Nhập tên KH' }]}>
+                <Input placeholder="VD: Nguyễn Văn A" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="sdt" label="SĐT" rules={[{ required: true, message: 'Nhập SĐT' }]}>
+                <Input placeholder="0901 234 567" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="diaChi" label="Địa chỉ giao" rules={[{ required: true }]}>
+            <Input placeholder="45 Lê Lợi, Q.1" />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="loai" label="Loại tiệc" rules={[{ required: true }]}>
+                <Select placeholder="Chọn" options={[
+                  { value: 'Cỗ cưới', label: 'Cỗ cưới' },
+                  { value: 'Cỗ giỗ', label: 'Cỗ giỗ' },
+                  { value: 'Tiệc sinh nhật', label: 'Tiệc sinh nhật' },
+                  { value: 'Liên hoan', label: 'Liên hoan' },
+                  { value: 'Cỗ khác', label: 'Cỗ khác' },
+                ]} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="soMam" label="Số mâm" rules={[{ required: true }]}>
+                <InputNumber min={1} max={200} style={{ width: '100%' }} placeholder="10" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="ngayGiao" label="Ngày giao" rules={[{ required: true }]}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="thucDon" label="Thực đơn" rules={[{ required: true, message: 'Chọn ít nhất 1 món' }]}>
+            <Select mode="multiple" placeholder="Chọn món"
+              options={menuOptions.map(m => ({ value: m.value, label: `${m.value} (${formatVND(m.don)}/mâm)` }))} />
+          </Form.Item>
+          <Form.Item name="daCoc" label="Trạng thái cọc" valuePropName="checked">
+            <Select placeholder="Chọn trạng thái" defaultValue={false} options={[
+              { value: false, label: '⏳ Chưa thanh toán cọc' },
+              { value: true, label: '✅ Đã thanh toán cọc (20%)' },
+            ]} />
+          </Form.Item>
+          <Form.Item name="ghiChu" label="Ghi chú">
+            <Input.TextArea rows={2} placeholder="Ghi chú thêm..." />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   )

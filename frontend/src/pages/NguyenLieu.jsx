@@ -2,14 +2,14 @@ import { useState, useMemo } from 'react'
 import {
   Tabs, Table, Card, Tag, Space, Typography, Collapse,
   Input, Select, Statistic, Row, Col, Tooltip, Badge, Empty,
-  Modal, Form, Button, message
+  Modal, Form, Button, message, Divider
 } from 'antd'
 import {
   ShoppingCartOutlined, CalendarOutlined, SearchOutlined,
   InboxOutlined, TeamOutlined, CheckCircleOutlined,
   ExperimentOutlined, BarChartOutlined, CaretRightOutlined, PlusOutlined,
   PhoneOutlined, EnvironmentOutlined, PrinterOutlined, HistoryOutlined,
-  FileTextOutlined, SaveOutlined
+  FileTextOutlined, SaveOutlined, ImportOutlined, WarningOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
@@ -206,6 +206,8 @@ export default function NguyenLieu() {
   const [duTruState, setDuTruState] = useState({})
 
   const [lichSuPhieu, setLichSuPhieu] = useState([])
+  const [tiepNhanData, setTiepNhanData] = useState({})
+  const [dsPhieuLoi, setDsPhieuLoi] = useState([])
 
   const handleTinhDuTru = (dateStr) => {
     const dons = mockDonHangTheoNgay[dateStr]
@@ -349,14 +351,17 @@ export default function NguyenLieu() {
             <div style={{ textAlign: 'right' }}>
               <Space>
                 <Button icon={<ExperimentOutlined />} onClick={() => handleSuaLai(dateStr)} style={{ borderRadius: 12 }}>Sửa lại</Button>
-                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleLuuPhieu(dateStr)} style={{ borderRadius: 12 }}>Lưu phiếu đặt hàng</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleLuuPhieu(dateStr)} style={{ borderRadius: 12 }}>Xác nhận đặt hàng</Button>
                 <Button icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')} style={{ borderRadius: 12 }}>In phiếu</Button>
               </Space>
             </div>
           )}
           {state.status === 'DaLuu' && (
             <div style={{ textAlign: 'right' }}>
-              <Tag color="success" icon={<CheckCircleOutlined />} style={{ fontSize: 14, padding: '4px 12px' }}>Phiếu đã lưu</Tag>
+              <Space>
+                <Tag color="warning" style={{ fontSize: 14, padding: '4px 12px' }}>⏳ Chờ giao hàng</Tag>
+                <Button icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')} style={{ borderRadius: 12 }}>In phiếu</Button>
+              </Space>
             </div>
           )}
         </div>
@@ -486,6 +491,127 @@ export default function NguyenLieu() {
                   { title: 'Số NL', dataIndex: 'soNL', width: 80, align: 'center', render: v => <Tag color="blue">{v}</Tag> },
                   { title: 'Thao tác', width: 100, render: () => <Button size="small" icon={<PrinterOutlined />}>In</Button> },
                 ]} />
+            </Card>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'tiepnhan',
+      label: <span><ImportOutlined style={{ marginRight: 6 }} />Tiếp nhận NL</span>,
+      children: (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {lichSuPhieu.length === 0 ? (
+            <Card style={glassCard}><Empty description="Chưa có phiếu đặt hàng nào để tiếp nhận" /></Card>
+          ) : (
+            lichSuPhieu.map(phieu => {
+              const tn = tiepNhanData[phieu.maPhieu] || { status: 'ChuaNhan' }
+              return (
+                <Card key={phieu.maPhieu} style={glassCard}
+                  title={<Space><Text strong style={{ color: '#5b8def' }}>{phieu.maPhieu}</Text>
+                    <Tag color="blue">Ngày giao: {dayjs(phieu.ngay).format('DD/MM/YYYY')}</Tag>
+                    <Tag>{phieu.soNL} loại NL</Tag>
+                    {tn.status === 'ChuaNhan' && <Tag color="warning">⏳ Chờ giao hàng</Tag>}
+                    {tn.status === 'DangNhan' && <Tag color="processing">📋 Đang đối chiếu</Tag>}
+                    {tn.status === 'DaNhapKho' && <Tag color="success" icon={<CheckCircleOutlined />}>Đã nhập kho</Tag>}
+                    {tn.status === 'CoLoi' && <Tag color="error" icon={<WarningOutlined />}>Có phiếu lỗi</Tag>}
+                  </Space>}>
+
+                  {/* Xem chi tiết phiếu đặt */}
+                  <Text strong style={{ marginBottom: 8, display: 'block' }}>Chi tiết phiếu đặt:</Text>
+                  <Table size="small" pagination={false} style={{ marginBottom: 12 }}
+                    dataSource={phieu.data.map(r => ({ ...r, key: r.ma }))}
+                    columns={[
+                      { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
+                      { title: 'Đơn vị', dataIndex: 'donVi', width: 60 },
+                      { title: 'SL đặt', dataIndex: 'slThucNhap', width: 90, align: 'center',
+                        render: v => <Tag color="blue">{v}</Tag> },
+                      { title: 'NCC', dataIndex: 'nccChon', width: 160,
+                        render: v => { const n = mockNCC.find(x => x.ma === v); return n ? <Tag color="geekblue">{n.ten} - {n.sdt}</Tag> : '—' } },
+                    ]} />
+
+                  {tn.status === 'ChuaNhan' && (
+                    <div style={{ textAlign: 'center' }}>
+                      <Button type="primary" icon={<ImportOutlined />}
+                        onClick={() => setTiepNhanData(prev => ({ ...prev, [phieu.maPhieu]: { status: 'DangNhan', rows: {} } }))}
+                        style={{ borderRadius: 12 }}>
+                        Bắt đầu kiểm hàng
+                      </Button>
+                    </div>
+                  )}
+
+                  {tn.status === 'DangNhan' && (
+                    <div>
+                      <Divider style={{ margin: '8px 0' }}>Nhập SL thực nhận</Divider>
+                      <Table size="small" pagination={false}
+                        dataSource={phieu.data.map(r => ({ ...r, key: r.ma }))}
+                        columns={[
+                          { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
+                          { title: 'SL đặt', dataIndex: 'slThucNhap', width: 90, align: 'center',
+                            render: v => <Tag color="blue">{v}</Tag> },
+                          { title: 'SL thực nhận', width: 120, align: 'center',
+                            render: (_, r) => <Input type="number" size="small" style={{ width: 80 }}
+                              defaultValue={r.slThucNhap}
+                              onChange={e => {
+                                const val = parseFloat(e.target.value) || 0
+                                setTiepNhanData(prev => {
+                                  const cur = prev[phieu.maPhieu] || { status: 'DangNhan', rows: {} }
+                                  return { ...prev, [phieu.maPhieu]: { ...cur, rows: { ...cur.rows, [r.ma]: val } } }
+                                })
+                              }} />
+                          },
+                        ]} />
+                      <div style={{ textAlign: 'right', marginTop: 12 }}>
+                        <Button type="primary" icon={<CheckCircleOutlined />}
+                          onClick={() => {
+                            const rows = tiepNhanData[phieu.maPhieu]?.rows || {}
+                            const hasError = phieu.data.some(r => {
+                              const actual = rows[r.ma] ?? r.slThucNhap
+                              return actual !== r.slThucNhap
+                            })
+                            if (hasError) {
+                              const loiItems = phieu.data.filter(r => (rows[r.ma] ?? r.slThucNhap) !== r.slThucNhap)
+                                .map(r => ({ ...r, slNhan: rows[r.ma] ?? r.slThucNhap, chenhLech: r.slThucNhap - (rows[r.ma] ?? r.slThucNhap), loai: 'Thiếu' }))
+                              const maLoi = 'PBL' + String(dsPhieuLoi.length + 1).padStart(3, '0')
+                              setDsPhieuLoi(prev => [...prev, { key: maLoi, maLoi, maPhieu: phieu.maPhieu, ngay: dayjs().format('DD/MM/YYYY HH:mm'), items: loiItems }])
+                              setTiepNhanData(prev => ({ ...prev, [phieu.maPhieu]: { status: 'CoLoi' } }))
+                              message.warning(`Phát hiện chênh lệch! Đã tạo phiếu báo lỗi ${maLoi}`)
+                            } else {
+                              setTiepNhanData(prev => ({ ...prev, [phieu.maPhieu]: { status: 'DaNhapKho' } }))
+                              message.success('Khớp 100%! Đã xác nhận nhập kho.')
+                            }
+                          }} style={{ borderRadius: 12 }}>
+                          Xác nhận nhập kho
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {tn.status === 'DaNhapKho' && <Tag color="success" style={{ fontSize: 14, padding: '6px 16px' }}>✅ Đã nhập kho thành công</Tag>}
+                  {tn.status === 'CoLoi' && <Tag color="error" style={{ fontSize: 14, padding: '6px 16px' }}>⚠️ Đã lập phiếu báo lỗi</Tag>}
+                </Card>
+              )
+            })
+          )}
+
+          {dsPhieuLoi.length > 0 && (
+            <Card title={<span><WarningOutlined style={{ color: '#ff4d4f' }} /> Phiếu báo lỗi</span>} style={glassCard}>
+              {dsPhieuLoi.map(pl => (
+                <Card key={pl.maLoi} size="small" style={{ marginBottom: 8, background: 'rgba(255,77,79,0.04)', border: '1px solid rgba(255,77,79,0.15)', borderRadius: 12 }}
+                  title={<Space><Text strong style={{ color: '#ff4d4f' }}>{pl.maLoi}</Text><Tag>{pl.maPhieu}</Tag><Text type="secondary">{pl.ngay}</Text></Space>}>
+                  <Table size="small" pagination={false} dataSource={pl.items.map((it,i) => ({ ...it, key: i }))}
+                    columns={[
+                      { title: 'NL', dataIndex: 'ten' },
+                      { title: 'SL đặt', dataIndex: 'slThucNhap', width: 80, align: 'center' },
+                      { title: 'SL nhận', dataIndex: 'slNhan', width: 80, align: 'center' },
+                      { title: 'Chênh lệch', dataIndex: 'chenhLech', width: 90, align: 'center',
+                        render: v => <Tag color="red">-{v}</Tag> },
+                      { title: 'Phân loại', dataIndex: 'loai', width: 100,
+                        render: () => <Select size="small" defaultValue="Thiếu" style={{ width: 90 }}
+                          options={[{ value: 'Thiếu', label: 'Thiếu' }, { value: 'Hỏng', label: 'Hỏng' }]} /> },
+                    ]} />
+                </Card>
+              ))}
             </Card>
           )}
         </div>

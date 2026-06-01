@@ -9,7 +9,8 @@ import {
   ShoppingCartOutlined, CheckCircleOutlined,
   ClockCircleOutlined, SyncOutlined,
   FilterOutlined, ReloadOutlined, CalendarOutlined,
-  CaretRightOutlined, PlusOutlined, DollarOutlined
+  CaretRightOutlined, PlusOutlined, DollarOutlined,
+  InboxOutlined, CarOutlined, TrophyOutlined
 } from '@ant-design/icons'
 
 const { RangePicker } = DatePicker
@@ -22,13 +23,16 @@ const mockOrders = [
     maDH: 'HD1-010526',
     khachHang: 'Nguyễn Văn An',
     sdt: '0901 234 567',
-    diaChi: '45 Lê Lợi, Quận 1, TP.HCM',
+    diaChiGiao: '45 Lê Lợi, Quận 1, TP.HCM',
     ngayDat: '2026-05-01',
     ngayGiao: '2026-05-05',
+    thoiGianToChuc: '10:00',
     loai: 'Cỗ cưới',
     soMam: 15,
     tongTien: 22500000,
-    trangThai: 'DaGiao',
+    tienCoc: 3375000,
+    nganSach: 25000000,
+    trangThai: 'HoanThanh',
     ghiChu: 'Giao trước 10h sáng',
     chiTiet: [
       { mon: 'Gà luộc lá chanh', soLuong: 15, donGia: 350000, thanhTien: 5250000 },
@@ -46,13 +50,16 @@ const mockOrders = [
     maDH: 'HD2-020526',
     khachHang: 'Trần Thị Bích',
     sdt: '0912 345 678',
-    diaChi: '12 Hoàng Diệu, Quận 4, TP.HCM',
+    diaChiGiao: '12 Hoàng Diệu, Quận 4, TP.HCM',
     ngayDat: '2026-05-02',
     ngayGiao: '2026-05-05',
+    thoiGianToChuc: '11:30',
     loai: 'Cỗ giỗ',
     soMam: 8,
     tongTien: 9600000,
-    trangThai: 'DangDongGoi',
+    tienCoc: 1440000,
+    nganSach: 10000000,
+    trangThai: 'DangGiao',
     ghiChu: '',
     chiTiet: [
       { mon: 'Gà luộc lá chanh', soLuong: 8, donGia: 350000, thanhTien: 2800000 },
@@ -67,13 +74,16 @@ const mockOrders = [
     maDH: 'HD3-030526',
     khachHang: 'Lê Hoàng Nam',
     sdt: '0987 654 321',
-    diaChi: '78 Nguyễn Trãi, Quận 5, TP.HCM',
+    diaChiGiao: '78 Nguyễn Trãi, Quận 5, TP.HCM',
     ngayDat: '2026-05-03',
     ngayGiao: '2026-05-07',
+    thoiGianToChuc: '17:00',
     loai: 'Tiệc sinh nhật',
     soMam: 5,
     tongTien: 7500000,
-    trangThai: 'ChoXuLy',
+    tienCoc: 1125000,
+    nganSach: 8000000,
+    trangThai: 'ChoDongGoi',
     ghiChu: 'Cần thêm bánh kem 3 tầng',
     chiTiet: [
       { mon: 'Bò nướng lá lốt', soLuong: 5, donGia: 400000, thanhTien: 2000000 },
@@ -89,13 +99,16 @@ const mockOrders = [
     maDH: 'HD4-040526',
     khachHang: 'Phạm Minh Tuấn',
     sdt: '0976 543 210',
-    diaChi: '156 CMT8, Quận 3, TP.HCM',
+    diaChiGiao: '156 CMT8, Quận 3, TP.HCM',
     ngayDat: '2026-05-04',
     ngayGiao: '2026-05-07',
+    thoiGianToChuc: '11:00',
     loai: 'Cỗ cưới',
     soMam: 20,
     tongTien: 36000000,
-    trangThai: 'ChoXuLy',
+    tienCoc: 5400000,
+    nganSach: 40000000,
+    trangThai: 'DaThanhToanCoc',
     ghiChu: 'Menu VIP, không dùng tôm (dị ứng)',
     chiTiet: [
       { mon: 'Gà hấp hành', soLuong: 20, donGia: 380000, thanhTien: 7600000 },
@@ -112,12 +125,15 @@ const mockOrders = [
     maDH: 'HD5-050526',
     khachHang: 'Võ Thị Hương',
     sdt: '0933 111 222',
-    diaChi: '23 Hai Bà Trưng, Quận 1, TP.HCM',
+    diaChiGiao: '23 Hai Bà Trưng, Quận 1, TP.HCM',
     ngayDat: '2026-05-05',
     ngayGiao: '2026-05-07',
+    thoiGianToChuc: '08:00',
     loai: 'Cỗ giỗ',
     soMam: 10,
     tongTien: 12000000,
+    tienCoc: 1800000,
+    nganSach: 12000000,
     trangThai: 'DaGiao',
     ghiChu: '',
     chiTiet: [
@@ -134,12 +150,15 @@ const mockOrders = [
     maDH: 'HD6-060526',
     khachHang: 'Đặng Quốc Việt',
     sdt: '0909 888 777',
-    diaChi: '90 Điện Biên Phủ, Bình Thạnh, TP.HCM',
+    diaChiGiao: '90 Điện Biên Phủ, Bình Thạnh, TP.HCM',
     ngayDat: '2026-05-06',
     ngayGiao: '2026-05-09',
+    thoiGianToChuc: '12:00',
     loai: 'Tiệc liên hoan',
     soMam: 12,
     tongTien: 18000000,
+    tienCoc: 2700000,
+    nganSach: 20000000,
     trangThai: 'DangDongGoi',
     ghiChu: 'Giao tầng 5, có thang máy',
     chiTiet: [
@@ -155,11 +174,15 @@ const mockOrders = [
 
 // Mapping trạng thái
 const statusConfig = {
-  ChoXuLy:     { text: 'Chờ xử lý',     color: 'gold',    icon: <ClockCircleOutlined /> },
-  DangDongGoi: { text: 'Đang đóng gói', color: 'processing', icon: <SyncOutlined spin /> },
-  DaGiao:      { text: 'Đã giao',       color: 'success', icon: <CheckCircleOutlined /> },
-  DaThanhToanCoc: { text: 'Đã TT cọc', color: 'cyan', icon: <DollarOutlined /> },
   ChuaThanhToanCoc: { text: 'Chưa TT cọc', color: 'volcano', icon: <ClockCircleOutlined /> },
+  DaThanhToanCoc: { text: 'Đã TT cọc', color: 'cyan', icon: <DollarOutlined /> },
+  ChoXuLy:     { text: 'Chờ xử lý',     color: 'gold',    icon: <ClockCircleOutlined /> },
+  ChoDongGoi:  { text: 'Chờ đóng gói',  color: 'blue',    icon: <InboxOutlined /> },
+  DangDongGoi: { text: 'Đang đóng gói', color: 'processing', icon: <SyncOutlined spin /> },
+  DaDongGoi:   { text: 'Đã đóng gói',   color: 'lime',    icon: <CheckCircleOutlined /> },
+  DangGiao:    { text: 'Đang giao',      color: 'geekblue', icon: <CarOutlined /> },
+  DaGiao:      { text: 'Đã giao',       color: 'success', icon: <CheckCircleOutlined /> },
+  HoanThanh:   { text: 'Hoàn thành',    color: 'success', icon: <TrophyOutlined /> },
 }
 
 // Format tiền VNĐ
@@ -199,7 +222,7 @@ export default function DonHang() {
         return { mon: ten, soLuong: soMam, donGia: m?.don || 0, thanhTien: (m?.don || 0) * soMam }
       })
       const tongTien = chiTiet.reduce((s, c) => s + c.thanhTien, 0)
-      const tienCoc = Math.round(tongTien * 0.2)
+      const tienCoc = Math.round(tongTien * 0.15)
       const newOrder = {
         key: String(orders.length + 1),
         maDH: `HD${orders.length + 1}-${new Date().toLocaleDateString('vi', {day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'')}`,
@@ -241,9 +264,10 @@ export default function DonHang() {
 
   // Tính thống kê
   const totalOrders = orders.length
-  const pending = orders.filter((o) => o.trangThai === 'ChoXuLy' || o.trangThai === 'ChuaThanhToanCoc').length
-  const packing = orders.filter((o) => o.trangThai === 'DangDongGoi').length
-  const delivered = orders.filter((o) => o.trangThai === 'DaGiao').length
+  const pending = orders.filter((o) => o.trangThai === 'ChoXuLy' || o.trangThai === 'ChuaThanhToanCoc' || o.trangThai === 'DaThanhToanCoc').length
+  const packing = orders.filter((o) => o.trangThai === 'DangDongGoi' || o.trangThai === 'ChoDongGoi').length
+  const delivered = orders.filter((o) => o.trangThai === 'DaGiao' || o.trangThai === 'HoanThanh').length
+  const shipping = orders.filter((o) => o.trangThai === 'DangGiao').length
 
   // Cột bảng
   const columns = [
@@ -395,11 +419,7 @@ export default function DonHang() {
               onChange={(val) => setFilterStatus(val)}
               allowClear
               style={{ width: '100%', borderRadius: 10 }}
-              options={[
-                { value: 'ChoXuLy', label: '⏳ Chờ xử lý' },
-                { value: 'DangDongGoi', label: '📦 Đang đóng gói' },
-                { value: 'DaGiao', label: '✅ Đã giao' },
-              ]}
+              options={Object.entries(statusConfig).map(([value, cfg]) => ({ value, label: `${cfg.text}` }))}
             />
           </Col>
           <Col xs={12} sm={6}>
@@ -515,9 +535,11 @@ export default function DonHang() {
               <Descriptions.Item label="Số mâm">{selectedOrder.soMam}</Descriptions.Item>
               <Descriptions.Item label="Ngày đặt">{selectedOrder.ngayDat}</Descriptions.Item>
               <Descriptions.Item label="Ngày giao">{selectedOrder.ngayGiao}</Descriptions.Item>
-              <Descriptions.Item label="Địa chỉ giao" span={2}>{selectedOrder.diaChi}</Descriptions.Item>
-              <Descriptions.Item label="Tiền cọc (20%)">
-                <Text strong style={{ color: '#52c41a' }}>{formatVND(selectedOrder.tienCoc || Math.round(selectedOrder.tongTien * 0.2))}</Text>
+              <Descriptions.Item label="Địa chỉ giao" span={2}>{selectedOrder.diaChiGiao}</Descriptions.Item>
+              <Descriptions.Item label="Thời gian tổ chức">{selectedOrder.thoiGianToChuc || '—'}</Descriptions.Item>
+              <Descriptions.Item label="Ngân sách">{selectedOrder.nganSach ? formatVND(selectedOrder.nganSach) : '—'}</Descriptions.Item>
+              <Descriptions.Item label="Tiền cọc (15%)">
+                <Text strong style={{ color: '#52c41a' }}>{formatVND(selectedOrder.tienCoc || Math.round(selectedOrder.tongTien * 0.15))}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái cọc">
                 {(selectedOrder.trangThai === 'ChuaThanhToanCoc') ? (
@@ -614,7 +636,7 @@ export default function DonHang() {
           <Form.Item name="daCoc" label="Trạng thái cọc" valuePropName="checked">
             <Select placeholder="Chọn trạng thái" defaultValue={false} options={[
               { value: false, label: '⏳ Chưa thanh toán cọc' },
-              { value: true, label: '✅ Đã thanh toán cọc (20%)' },
+              { value: true, label: '✅ Đã thanh toán cọc (15%)' },
             ]} />
           </Form.Item>
           <Form.Item name="ghiChu" label="Ghi chú">

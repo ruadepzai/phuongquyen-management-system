@@ -6,7 +6,8 @@ import {
 import {
   CheckCircleOutlined, ExclamationCircleOutlined, PrinterOutlined,
   InboxOutlined, ClockCircleOutlined, SyncOutlined,
-  WarningOutlined, CheckOutlined, ArrowLeftOutlined
+  WarningOutlined, CheckOutlined, ArrowLeftOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
 
 const { Text, Title } = Typography
@@ -112,6 +113,7 @@ export default function DongGoi() {
   const [theuModal, setThieuModal] = useState({ open: false, itemId: null })
   const [theuSL, setThieuSL] = useState(0)
   const [theuLyDo, setThieuLyDo] = useState('')
+  const [labelModal, setLabelModal] = useState({ open: false, order: null })
 
   const selectedOrder = orders.find((o) => o.key === selectedKey)
 
@@ -166,6 +168,8 @@ export default function DongGoi() {
               slThucTe: theuSL,
               thieu: item.slYeuCau - theuSL,
               lyDo: theuLyDo,
+              thoiGianBao: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+              trangThaiBoSung: 'ChuaBoSung',
             }
           }),
         }
@@ -173,6 +177,23 @@ export default function DongGoi() {
     )
     setThieuModal({ open: false, itemId: null })
     message.warning('Đã ghi nhận thiếu món')
+  }
+
+  // Xác nhận đã bổ sung món thiếu
+  const confirmBoSung = (itemId) => {
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.key !== selectedKey) return o
+        return {
+          ...o,
+          items: o.items.map((item) => {
+            if (item.id !== itemId) return item
+            return { ...item, trangThaiBoSung: 'DaBoSung', slThucTe: item.slYeuCau, thieu: 0 }
+          }),
+        }
+      })
+    )
+    message.success('Đã bổ sung món thành công!')
   }
 
   // UC5: Xác nhận hoàn thành đóng gói toàn bộ đơn
@@ -187,9 +208,9 @@ export default function DongGoi() {
     setSelectedKey(null)
   }
 
-  // UC3: In nhãn
+  // UC3: In nhãn — hiện preview modal
   const printLabel = (order) => {
-    message.info('🖨 Đang in nhãn cho đơn ' + order.maDH + '...')
+    setLabelModal({ open: true, order })
   }
 
   // ==================== RENDER ====================
@@ -363,8 +384,19 @@ export default function DongGoi() {
               <div style={{ background: '#fff2f0', borderRadius: 8, padding: '10px 12px', marginTop: 16 }}>
                 <Text type="danger" strong><WarningOutlined /> Có món báo thiếu!</Text>
                 {selectedOrder.items.filter(i => i.thieu > 0).map((item) => (
-                  <div key={item.id} style={{ marginTop: 4, fontSize: 13 }}>
-                    • {item.mon}: thiếu <strong>{item.thieu}</strong> — {item.lyDo}
+                  <div key={item.id} style={{ marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: 13 }}>
+                      • {item.mon}: thiếu <strong>{item.thieu}</strong>
+                      {item.thoiGianBao && <Text type="secondary" style={{ marginLeft: 6, fontSize: 11 }}>(báo lúc {item.thoiGianBao})</Text>}
+                      {item.lyDo && <Text type="secondary" style={{ marginLeft: 4, fontSize: 11 }}>— {item.lyDo}</Text>}
+                    </div>
+                    {item.trangThaiBoSung === 'ChuaBoSung' ? (
+                      <Button size="small" type="primary" icon={<ReloadOutlined />}
+                        onClick={() => confirmBoSung(item.id)}
+                        style={{ borderRadius: 8, fontSize: 12 }}>Đã bổ sung</Button>
+                    ) : (
+                      <Tag color="success" style={{ borderRadius: 8 }}>Đã BS</Tag>
+                    )}
                   </div>
                 ))}
               </div>
@@ -490,6 +522,49 @@ export default function DongGoi() {
                 rows={3}
                 style={{ marginTop: 8 }}
               />
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* UC3: Modal Preview In nhãn */}
+      <Modal
+        title={<Space><PrinterOutlined style={{ color: 'var(--primary)', fontSize: 20 }} /><span style={{ fontSize: 17 }}>Preview Nhãn Đơn</span></Space>}
+        open={labelModal.open}
+        onCancel={() => setLabelModal({ open: false, order: null })}
+        footer={[
+          <Button key="cancel" onClick={() => setLabelModal({ open: false, order: null })}>Hủy</Button>,
+          <Button key="print" type="primary" icon={<PrinterOutlined />}
+            onClick={() => { message.success('Đã gửi lệnh in!'); setLabelModal({ open: false, order: null }) }}>In nhãn</Button>,
+        ]}
+        width={480}
+      >
+        {labelModal.order && (
+          <div style={{ border: '2px dashed #d9d9d9', borderRadius: 12, padding: 24, background: '#fff' }}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <Title level={4} style={{ margin: 0, color: 'var(--primary)' }}>NHÀ HÀNG PHƯỢNG QUYÊN</Title>
+              <Text type="secondary">Dịch vụ nấu cỗ tiệc chuyên nghiệp</Text>
+            </div>
+            <Divider dashed style={{ margin: '12px 0' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div><Text type="secondary">Mã đơn:</Text> <Text strong style={{ fontSize: 16 }}>{labelModal.order.maDH}</Text></div>
+              <div><Text type="secondary">Khách hàng:</Text> <Text strong>{labelModal.order.khachHang}</Text></div>
+              <div><Text type="secondary">Địa chỉ:</Text> <Text>{labelModal.order.diaChi}</Text></div>
+              <div><Text type="secondary">Giao:</Text> <Text strong>{labelModal.order.ngayGiao} lúc {labelModal.order.gioGiao}</Text></div>
+              <div><Text type="secondary">Loại tiệc:</Text> <Text>{labelModal.order.loai} • {labelModal.order.soMam} mâm</Text></div>
+            </div>
+            <Divider dashed style={{ margin: '12px 0' }} />
+            <div style={{ fontSize: 12 }}>
+              <Text strong>Danh sách món:</Text>
+              <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {labelModal.order.items.map(item => (
+                  <Tag key={item.id} style={{ borderRadius: 6, fontSize: 11 }}>{item.mon} x{item.slYeuCau}</Tag>
+                ))}
+              </div>
+            </div>
+            <Divider dashed style={{ margin: '12px 0' }} />
+            <div style={{ textAlign: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 11 }}>Xin cảm ơn quý khách! ❤️</Text>
             </div>
           </div>
         )}

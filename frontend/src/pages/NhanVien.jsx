@@ -12,20 +12,20 @@ const { Text } = Typography
 
 // ==================== MOCK DATA ====================
 const initialStaff = [
-  { key: '1', maNV: 'NV001', hoTen: 'Nguyễn Văn Lương', sdt: '0901 234 567', role: 'QuanLy', trangThai: 'active' },
-  { key: '2', maNV: 'NV002', hoTen: 'Trần Thị Mai', sdt: '0912 345 678', role: 'NVDongGoi', trangThai: 'active' },
-  { key: '3', maNV: 'NV003', hoTen: 'Lê Hoàng Phúc', sdt: '0987 654 321', role: 'NVDongGoi', trangThai: 'active' },
-  { key: '4', maNV: 'NV004', hoTen: 'Phạm Minh Đức', sdt: '0976 543 210', role: 'Bep', trangThai: 'active' },
-  { key: '5', maNV: 'NV005', hoTen: 'Võ Thị Hồng', sdt: '0933 111 222', role: 'Bep', trangThai: 'active' },
-  { key: '6', maNV: 'NV006', hoTen: 'Đặng Quốc Huy', sdt: '0909 888 777', role: 'NVVanChuyen', trangThai: 'active' },
-  { key: '7', maNV: 'NV007', hoTen: 'Bùi Thanh Tâm', sdt: '0977 222 333', role: 'NVVanChuyen', trangThai: 'inactive' },
+  { key: '1', maNV: 'NV001', hoTen: 'Nguyễn Văn Lương', sdt: '0901 234 567', role: 'QuanLy', taiKhoan: 'admin', matKhau: '123456', trangThai: 'active' },
+  { key: '2', maNV: 'NV002', hoTen: 'Trần Thị Mai', sdt: '0912 345 678', role: 'NVDongGoi', taiKhoan: 'nv', matKhau: '123', trangThai: 'active' },
+  { key: '3', maNV: 'NV003', hoTen: 'Lê Hoàng Phúc', sdt: '0987 654 321', role: 'NVDongGoi', taiKhoan: 'phuc.lh', matKhau: '123', trangThai: 'active' },
+  { key: '4', maNV: 'NV004', hoTen: 'Phạm Minh Đức', sdt: '0976 543 210', role: 'Bep', taiKhoan: 'duc.pm', matKhau: '123', trangThai: 'active' },
+  { key: '5', maNV: 'NV005', hoTen: 'Võ Thị Hồng', sdt: '0933 111 222', role: 'Bep', taiKhoan: 'hong.vt', matKhau: '123', trangThai: 'active' },
+  { key: '6', maNV: 'NV006', hoTen: 'Đặng Quốc Huy', sdt: '0909 888 777', role: 'ThuNgan', taiKhoan: 'huy.dq', matKhau: '123', trangThai: 'active' },
+  { key: '7', maNV: 'NV007', hoTen: 'Bùi Thanh Tâm', sdt: '0977 222 333', role: 'ThuNgan', taiKhoan: 'tam.bt', matKhau: '123', trangThai: 'inactive' },
 ]
 
 const roleConfig = {
   QuanLy:       { text: 'Quản lý',        color: 'blue' },
   NVDongGoi:    { text: 'NV Đóng gói',    color: 'green' },
   Bep:          { text: 'Bếp',            color: 'orange' },
-  NVVanChuyen:  { text: 'NV Vận chuyển',  color: 'purple' },
+  ThuNgan:      { text: 'Thu ngân',       color: 'purple' },
 }
 
 // ==================== COMPONENT ====================
@@ -104,6 +104,13 @@ export default function NhanVien() {
       dataIndex: 'sdt',
       key: 'sdt',
       width: 140,
+    },
+    {
+      title: 'Tài khoản',
+      dataIndex: 'taiKhoan',
+      key: 'taiKhoan',
+      width: 120,
+      render: (text) => <Text code>{text}</Text>,
     },
     {
       title: 'Vai trò',
@@ -197,6 +204,12 @@ export default function NhanVien() {
           </Form.Item>
           <Form.Item name="sdt" label="Số điện thoại" rules={[{ required: true, message: 'Nhập SĐT' }]}>
             <Input style={{ borderRadius: 10 }} />
+          </Form.Item>
+          <Form.Item name="taiKhoan" label="Tên đăng nhập" rules={[{ required: true, message: 'Nhập tài khoản' }]}>
+            <Input style={{ borderRadius: 10 }} disabled={!!editingKey} placeholder="VD: nguyenvan.a" />
+          </Form.Item>
+          <Form.Item name="matKhau" label="Mật khẩu" rules={[{ required: !editingKey, message: 'Nhập mật khẩu' }]}>
+            <Input.Password style={{ borderRadius: 10 }} placeholder={editingKey ? 'Bỏ trống nếu không đổi' : ''} />
           </Form.Item>
           <Form.Item name="role" label="Vai trò" rules={[{ required: true, message: 'Chọn vai trò' }]}>
             <Select

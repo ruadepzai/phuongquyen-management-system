@@ -33,12 +33,12 @@ const mockNguyenLieu = [
 ]
 
 const mockNCC = [
-  { ma: 'NCC01', ten: 'Anh Tuấn', sdt: '0901 111 222', diaChi: 'Chợ Đồng Xuân', nhom: 'Thịt & Chả' },
-  { ma: 'NCC02', ten: 'Chị Hoa', sdt: '0912 333 444', diaChi: 'Chợ Long Biên', nhom: 'Hải sản' },
-  { ma: 'NCC03', ten: 'Bác Hùng', sdt: '0987 555 666', diaChi: 'Chợ Minh Khai', nhom: 'Rau củ & Nấm' },
-  { ma: 'NCC04', ten: 'Cô Lan', sdt: '0976 777 888', diaChi: 'Chợ Hàng Da', nhom: 'Khô & Gia vị' },
-  { ma: 'NCC05', ten: 'Anh Bình', sdt: '0933 999 000', diaChi: 'Chợ Thành Công', nhom: 'Thịt tươi sống' },
-  { ma: 'NCC06', ten: 'Chú Dũng', sdt: '0944 222 333', diaChi: 'Chợ cá Yên Sở', nhom: 'Cá nước ngọt' },
+  { ma: 'NCC01', ten: 'Anh Tuấn', sdt: '0901 111 222', diaChi: 'Chợ Đồng Xuân', nhom: 'Thịt & Chả', congNo: 2500000 },
+  { ma: 'NCC02', ten: 'Chị Hoa', sdt: '0912 333 444', diaChi: 'Chợ Long Biên', nhom: 'Hải sản', congNo: 0 },
+  { ma: 'NCC03', ten: 'Bác Hùng', sdt: '0987 555 666', diaChi: 'Chợ Minh Khai', nhom: 'Rau củ & Nấm', congNo: 800000 },
+  { ma: 'NCC04', ten: 'Cô Lan', sdt: '0976 777 888', diaChi: 'Chợ Hàng Da', nhom: 'Khô & Gia vị', congNo: 0 },
+  { ma: 'NCC05', ten: 'Anh Bình', sdt: '0933 999 000', diaChi: 'Chợ Thành Công', nhom: 'Thịt tươi sống', congNo: 1200000 },
+  { ma: 'NCC06', ten: 'Chú Dũng', sdt: '0944 222 333', diaChi: 'Chợ cá Yên Sở', nhom: 'Cá nước ngọt', congNo: 500000 },
 ]
 
 // Đơn hàng gom theo ngày
@@ -193,6 +193,11 @@ export default function NguyenLieu() {
     { title: 'Nhóm hàng', dataIndex: 'nhom', render: v => <Tag color="blue">{v}</Tag> },
     { title: 'SĐT', dataIndex: 'sdt', width: 140, render: v => <span><PhoneOutlined style={{ marginRight: 4 }} />{v}</span> },
     { title: 'Địa chỉ', dataIndex: 'diaChi', render: v => <span><EnvironmentOutlined style={{ marginRight: 4 }} />{v}</span> },
+    {
+      title: 'Công nợ', dataIndex: 'congNo', width: 140, align: 'right',
+      render: v => v > 0 ? <Text strong style={{ color: '#ff4d4f' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v)}</Text> : <Tag color="success">Hết nợ</Tag>,
+      sorter: (a, b) => a.congNo - b.congNo,
+    },
     {
       title: 'Nguyên liệu cung cấp', width: 240,
       render: (_, r) => {
@@ -606,9 +611,11 @@ export default function NguyenLieu() {
                       { title: 'SL nhận', dataIndex: 'slNhan', width: 80, align: 'center' },
                       { title: 'Chênh lệch', dataIndex: 'chenhLech', width: 90, align: 'center',
                         render: v => <Tag color="red">-{v}</Tag> },
-                      { title: 'Phân loại', dataIndex: 'loai', width: 100,
-                        render: () => <Select size="small" defaultValue="Thiếu" style={{ width: 90 }}
-                          options={[{ value: 'Thiếu', label: 'Thiếu' }, { value: 'Hỏng', label: 'Hỏng' }]} /> },
+                      { title: 'Loại lỗi', dataIndex: 'loaiLoi', width: 120,
+                        render: () => <Select size="small" defaultValue="Thiếu" style={{ width: 110 }}
+                          options={[{ value: 'Thiếu', label: 'Thiếu hàng' }, { value: 'Hỏng', label: 'Hàng hỏng' }, { value: 'SaiLoai', label: 'Sai loại' }]} /> },
+                      { title: 'Tình trạng', key: 'tinhTrangXuLy', width: 130,
+                        render: () => <Tag color="warning">Chưa xử lý</Tag> },
                     ]} />
                 </Card>
               ))}

@@ -126,6 +126,10 @@ function formatVND(value) {
 
 // ==================== COMPONENT ====================
 export default function DonHang() {
+  // Đọc role từ localStorage
+  const userRole = (() => { try { return JSON.parse(localStorage.getItem('user'))?.role } catch { return 'NhanVien' } })()
+  const isAdmin = userRole === 'QuanLy'
+
   const [searchText, setSearchText] = useState('')
   const [filterStatus, setFilterStatus] = useState(null)
   const [detailVisible, setDetailVisible] = useState(false)
@@ -281,10 +285,10 @@ export default function DonHang() {
       render: (_, record) => (
         <Space>
           <Tooltip title="Xem"><Button type="text" icon={<EyeOutlined />} onClick={(e) => { e.stopPropagation(); showDetail(record) }} /></Tooltip>
-          <Tooltip title="Sửa"><Button type="text" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleEdit(record) }} /></Tooltip>
-          <Popconfirm title="Xóa đơn hàng này?" onConfirm={() => handleDelete(record.key)} okText="Xóa" cancelText="Hủy">
+          {isAdmin && <Tooltip title="Sửa"><Button type="text" icon={<EditOutlined />} onClick={(e) => { e.stopPropagation(); handleEdit(record) }} /></Tooltip>}
+          {isAdmin && <Popconfirm title="Xóa đơn hàng này?" onConfirm={() => handleDelete(record.key)} okText="Xóa" cancelText="Hủy">
             <Tooltip title="Xóa"><Button type="text" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} /></Tooltip>
-          </Popconfirm>
+          </Popconfirm>}
         </Space>
       ),
     },
@@ -347,7 +351,7 @@ export default function DonHang() {
           <Col xs={24} sm={8} style={{ textAlign: 'right' }}>
             <Space>
               <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(''); setFilterStatus(null) }} style={{ borderRadius: 10 }}>Làm mới</Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateVisible(true)} style={{ borderRadius: 10 }}>Tạo đơn mới</Button>
+              {isAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateVisible(true)} style={{ borderRadius: 10 }}>Tạo đơn mới</Button>}
             </Space>
           </Col>
         </Row>

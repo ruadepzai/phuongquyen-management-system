@@ -10,6 +10,7 @@ import NhanVien from './pages/NhanVien'
 import BaoCao from './pages/BaoCao'
 import Bep from './pages/Bep'
 import HoaDon from './pages/HoaDon'
+import TiepNhanNL from './pages/TiepNhanNL'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="bep" element={<Bep />} />
           <Route path="thuc-don" element={<ThucDon />} />
           <Route path="nguyen-lieu" element={<NguyenLieu />} />
+          <Route path="tiep-nhan-nl" element={<TiepNhanNL />} />
           <Route path="hoa-don" element={<HoaDon />} />
           <Route path="nhan-vien" element={<NhanVien />} />
           <Route path="bao-cao" element={<BaoCao />} />

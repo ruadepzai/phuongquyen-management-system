@@ -143,16 +143,7 @@ export default function NguyenLieu() {
   const [duTruState, setDuTruState] = useState({})
   const [lichSuPhieu, setLichSuPhieu] = useState([])
 
-  // Tiếp nhận
-  const [tiepNhanData, setTiepNhanData] = useState({})
 
-  // Phiếu báo lỗi
-  const [dsPhieuLoi, setDsPhieuLoi] = useState([])
-  const [pblModalOpen, setPblModalOpen] = useState(false)
-  const [pblForm] = Form.useForm()
-  const [pblContext, setPblContext] = useState(null) // { maPhieu, items (NL bị lỗi) }
-  const [pblDetailVisible, setPblDetailVisible] = useState(false)
-  const [pblDetailData, setPblDetailData] = useState(null)
 
   // ===== NL CRUD =====
   const openNlModal = (record = null) => {
@@ -252,60 +243,7 @@ export default function NguyenLieu() {
   }
 
   // ===== TIẾP NHẬN =====
-  const handleBatDauKiem = (maPhieu) => {
-    setTiepNhanData(prev => ({ ...prev, [maPhieu]: { status: 'DangNhan', rows: {} } }))
-  }
 
-  const handleXacNhanNhapKho = (phieu) => {
-    const rows = tiepNhanData[phieu.maPhieu]?.rows || {}
-    const hasError = phieu.data.some(r => {
-      const actual = rows[r.ma]?.slNhan ?? r.slThucNhap
-      return actual !== r.slThucNhap
-    })
-    if (hasError) {
-      // Mở modal tạo phiếu báo lỗi
-      const loiItems = phieu.data.filter(r => (rows[r.ma]?.slNhan ?? r.slThucNhap) !== r.slThucNhap)
-        .map(r => ({
-          ...r,
-          slNhan: rows[r.ma]?.slNhan ?? r.slThucNhap,
-          chenhLech: r.slThucNhap - (rows[r.ma]?.slNhan ?? r.slThucNhap),
-        }))
-      setPblContext({ maPhieu: phieu.maPhieu, nccTen: phieu.nccTen, items: loiItems })
-      setPblModalOpen(true)
-    } else {
-      setTiepNhanData(prev => ({ ...prev, [phieu.maPhieu]: { status: 'DaNhapKho' } }))
-      // Cập nhật trạng thái phiếu
-      setLichSuPhieu(prev => prev.map(p => p.maPhieu === phieu.maPhieu ? { ...p, trangThai: 'HoanThanh' } : p))
-      message.success('Khớp 100%! Đã xác nhận nhập kho.')
-    }
-  }
-
-  // ===== PHIẾU BÁO LỖI =====
-  const handleXacNhanPBL = () => {
-    pblForm.validateFields().then(vals => {
-      const maLoi = 'PBL' + String(dsPhieuLoi.length + 1).padStart(3, '0')
-      const items = pblContext.items.map((it, i) => ({
-        ...it,
-        loaiLoi: vals.items?.[i]?.loaiLoi || '',
-        slThieu: vals.items?.[i]?.slThieu || 0,
-        slHong: vals.items?.[i]?.slHong || 0,
-        ghiChuLoi: vals.items?.[i]?.ghiChuLoi || '',
-      }))
-      setDsPhieuLoi(prev => [...prev, {
-        key: maLoi, maLoi, maPhieu: pblContext.maPhieu, nccTen: pblContext.nccTen,
-        ngay: dayjs().format('DD/MM/YYYY HH:mm'), items, trangThai: 'ChoXuLy',
-      }])
-      setTiepNhanData(prev => ({ ...prev, [pblContext.maPhieu]: { status: 'CoLoi' } }))
-      message.warning(`Đã tạo phiếu báo lỗi ${maLoi}`)
-      setPblModalOpen(false)
-      pblForm.resetFields()
-    })
-  }
-
-  const handleXuLyPBL = (maLoi) => {
-    setDsPhieuLoi(prev => prev.map(p => p.maLoi === maLoi ? { ...p, trangThai: 'DaXuLy' } : p))
-    message.success(`Đã đánh dấu phiếu ${maLoi} là "Đã xử lý"`)
-  }
 
   // ===== FILTERED DATA =====
   const filteredNL = nguyenLieuList.filter(n =>
@@ -512,153 +450,7 @@ export default function NguyenLieu() {
       ),
     },
 
-    // ===== TAB 4: Tiếp nhận NL =====
-    {
-      key: 'tiepnhan',
-      label: <span><ImportOutlined style={{ marginRight: 6 }} />Tiếp nhận NL</span>,
-      children: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {lichSuPhieu.length === 0 ? (
-            <Card style={glassCard}><Empty description="Chưa có phiếu đặt hàng nào để tiếp nhận" /></Card>
-          ) : (() => {
-            // Gom phiếu theo ngày
-            const phieuByDate = {}
-            lichSuPhieu.forEach(p => {
-              if (!phieuByDate[p.ngay]) phieuByDate[p.ngay] = []
-              phieuByDate[p.ngay].push(p)
-            })
-            const sortedDates = Object.keys(phieuByDate).sort()
 
-            return (
-              <Collapse
-                expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
-                style={{ background: 'transparent', border: 'none' }}
-                defaultActiveKey={sortedDates}
-                items={sortedDates.map(dateStr => {
-                  const phieus = phieuByDate[dateStr]
-                  const tongNCC = phieus.length
-                  const tongNL = phieus.reduce((s, p) => s + p.soNL, 0)
-                  return {
-                    key: dateStr,
-                    label: (
-                      <Space size={16}>
-                        <Text strong style={{ fontSize: 15, color: '#5b8def' }}>
-                          <CalendarOutlined style={{ marginRight: 6 }} />{dayjs(dateStr).format('DD/MM/YYYY')}
-                        </Text>
-                        <Tag color="geekblue">{tongNCC} NCC</Tag>
-                        <Tag color="blue">{tongNL} NL</Tag>
-                      </Space>
-                    ),
-                    children: (
-                      <Collapse
-                        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
-                        style={{ background: 'transparent', border: 'none' }}
-                        items={phieus.map(phieu => {
-                          const tn = tiepNhanData[phieu.maPhieu] || { status: 'ChuaNhan' }
-                          return {
-                            key: phieu.maPhieu,
-                            label: (
-                              <Space>
-                                <Text strong style={{ color: '#5b8def' }}>{phieu.maPhieu}</Text>
-                                <Tag color="geekblue">NCC: {phieu.nccTen}</Tag>
-                                <Tag>{phieu.soNL} NL</Tag>
-                                {tn.status === 'ChuaNhan' && <Tag color="warning">⏳ Chờ giao</Tag>}
-                                {tn.status === 'DangNhan' && <Tag color="processing">📋 Đang đối chiếu</Tag>}
-                                {tn.status === 'DaNhapKho' && <Tag color="success" icon={<CheckCircleOutlined />}>Đã nhập kho</Tag>}
-                                {tn.status === 'CoLoi' && <Tag color="error" icon={<WarningOutlined />}>Có phiếu lỗi</Tag>}
-                              </Space>
-                            ),
-                            children: (
-                              <div>
-                                <Table size="small" pagination={false} style={{ marginBottom: 12 }}
-                                  dataSource={phieu.data.map(r => ({ ...r, key: r.ma }))}
-                                  columns={[
-                                    { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
-                                    { title: 'Đơn vị', dataIndex: 'donVi', width: 60 },
-                                    { title: 'SL đặt', dataIndex: 'slThucNhap', width: 90, align: 'center', render: v => <Tag color="blue">{v}</Tag> },
-                                    { title: 'Đơn giá', dataIndex: 'donGiaNhap', width: 120, align: 'right', render: v => v ? formatVND(v) : '—' },
-                                    ...(tn.status === 'DangNhan' ? [{
-                                      title: 'SL thực nhận', width: 120, align: 'center',
-                                      render: (_, r) => <InputNumber size="small" style={{ width: 90 }} min={0}
-                                        defaultValue={r.slThucNhap}
-                                        onChange={val => {
-                                          setTiepNhanData(prev => {
-                                            const cur = prev[phieu.maPhieu] || { status: 'DangNhan', rows: {} }
-                                            return { ...prev, [phieu.maPhieu]: { ...cur, rows: { ...cur.rows, [r.ma]: { slNhan: val || 0 } } } }
-                                          })
-                                        }} />,
-                                    }] : []),
-                                  ]} />
-
-                                {tn.status === 'ChuaNhan' && (
-                                  <div style={{ textAlign: 'center' }}>
-                                    <Button type="primary" icon={<ImportOutlined />} onClick={() => handleBatDauKiem(phieu.maPhieu)} style={{ borderRadius: 12 }}>Bắt đầu kiểm hàng</Button>
-                                  </div>
-                                )}
-                                {tn.status === 'DangNhan' && (
-                                  <div style={{ textAlign: 'right', marginTop: 12 }}>
-                                    <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => handleXacNhanNhapKho(phieu)} style={{ borderRadius: 12 }}>Xác nhận nhập kho</Button>
-                                  </div>
-                                )}
-                                {tn.status === 'DaNhapKho' && <Tag color="success" style={{ fontSize: 14, padding: '6px 16px' }}>✅ Đã nhập kho thành công</Tag>}
-                                {tn.status === 'CoLoi' && <Tag color="error" style={{ fontSize: 14, padding: '6px 16px' }}>⚠️ Đã lập phiếu báo lỗi</Tag>}
-                              </div>
-                            ),
-                          }
-                        })}
-                      />
-                    ),
-                  }
-                })}
-              />
-            )
-          })()}
-        </div>
-      ),
-    },
-
-    // ===== TAB 5: Lịch sử phiếu báo lỗi =====
-    {
-      key: 'lichsuPBL',
-      label: <span><WarningOutlined style={{ marginRight: 6, color: '#ff4d4f' }} />Lịch sử phiếu báo lỗi</span>,
-      children: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {dsPhieuLoi.length === 0 ? (
-            <Card style={glassCard}><Empty description="Chưa có phiếu báo lỗi nào" /></Card>
-          ) : (
-            <Card style={glassCard}>
-              <Table size="middle" pagination={false} dataSource={dsPhieuLoi}
-                columns={[
-                  { title: 'Mã PBL', dataIndex: 'maLoi', width: 110, render: v => <Text strong style={{ color: '#ff4d4f' }}>{v}</Text> },
-                  { title: 'Mã phiếu đặt', dataIndex: 'maPhieu', width: 120 },
-                  { title: 'NCC', dataIndex: 'nccTen', width: 120 },
-                  { title: 'Ngày tạo', dataIndex: 'ngay', width: 160 },
-                  { title: 'Số NL lỗi', width: 90, align: 'center', render: (_, r) => <Tag color="red">{r.items.length}</Tag> },
-                  {
-                    title: 'Trạng thái', dataIndex: 'trangThai', width: 130,
-                    render: v => v === 'DaXuLy' ? <Tag color="success">Đã xử lý</Tag> : <Tag color="warning">Chờ xử lý</Tag>,
-                  },
-                  {
-                    title: 'Thao tác', width: 150, align: 'center',
-                    render: (_, r) => (
-                      <Space>
-                        <Tooltip title="Xem chi tiết">
-                          <Button type="text" icon={<EyeOutlined />} onClick={() => { setPblDetailData(r); setPblDetailVisible(true) }} />
-                        </Tooltip>
-                        {r.trangThai === 'ChoXuLy' && (
-                          <Popconfirm title="Xác nhận đã xử lý phiếu này?" onConfirm={() => handleXuLyPBL(r.maLoi)} okText="Xác nhận" cancelText="Hủy">
-                            <Button type="primary" size="small" style={{ borderRadius: 8 }}>Đã xử lý</Button>
-                          </Popconfirm>
-                        )}
-                      </Space>
-                    ),
-                  },
-                ]} />
-            </Card>
-          )}
-        </div>
-      ),
-    },
   ]
 
   // ============================================================
@@ -671,7 +463,7 @@ export default function NguyenLieu() {
           <ExperimentOutlined style={{ marginRight: 10, color: '#5b8def' }} />
           Quản lý Nguyên liệu
         </Title>
-        <Text type="secondary">Tổng hợp nguyên liệu, nhà cung cấp, dự trù và tiếp nhận nhập hàng</Text>
+        <Text type="secondary">Tổng hợp nguyên liệu, nhà cung cấp và dự trù nhập hàng</Text>
       </div>
 
       <Tabs items={tabItems} defaultActiveKey="nguyenlieu" size="large"
@@ -725,70 +517,7 @@ export default function NguyenLieu() {
         </Form>
       </Modal>
 
-      {/* ===== Modal tạo phiếu báo lỗi ===== */}
-      <Modal title="Lập phiếu báo lỗi" open={pblModalOpen} width={700}
-        onOk={handleXacNhanPBL} onCancel={() => { setPblModalOpen(false); pblForm.resetFields() }}
-        okText="Xác nhận phiếu báo lỗi" cancelText="Hủy">
-        {pblContext && (
-          <Form form={pblForm} layout="vertical" style={{ marginTop: 12 }}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-              Phiếu đặt: <Text strong>{pblContext.maPhieu}</Text> — NCC: <Text strong>{pblContext.nccTen}</Text>
-            </Text>
-            {pblContext.items.map((item, idx) => (
-              <Card key={idx} size="small" style={{ marginBottom: 12, background: 'rgba(255,77,79,0.04)', border: '1px solid rgba(255,77,79,0.15)', borderRadius: 12 }}
-                title={<Space><Text strong>{item.ten}</Text><Tag>SL đặt: {item.slThucNhap}</Tag><Tag color="red">Chênh lệch: {item.chenhLech}</Tag></Space>}>
-                <Row gutter={16}>
-                  <Col span={8}>
-                    <Form.Item name={['items', idx, 'loaiLoi']} label="Loại lỗi" rules={[{ required: true, message: 'Chọn loại lỗi' }]}>
-                      <Select placeholder="— Chọn —" options={[
-                        { value: 'ThieuHang', label: 'Thiếu hàng' },
-                        { value: 'HangHong', label: 'Hàng hỏng' },
-                      ]} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={8}>
-                    <Form.Item name={['items', idx, 'slThieu']} label="SL thiếu">
-                      <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={8}>
-                    <Form.Item name={['items', idx, 'slHong']} label="SL hỏng">
-                      <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Form.Item name={['items', idx, 'ghiChuLoi']} label="Ghi chú">
-                  <Input placeholder="Mô tả tình trạng thực tế..." />
-                </Form.Item>
-              </Card>
-            ))}
-          </Form>
-        )}
-      </Modal>
 
-      {/* ===== Modal chi tiết PBL ===== */}
-      <Modal title={pblDetailData && `Chi tiết phiếu ${pblDetailData.maLoi}`} open={pblDetailVisible}
-        onCancel={() => setPblDetailVisible(false)} footer={null} width={650}>
-        {pblDetailData && (
-          <>
-            <Divider style={{ margin: '8px 0' }}>Thông tin</Divider>
-            <Row gutter={16} style={{ marginBottom: 12 }}>
-              <Col span={8}><Text type="secondary">Mã phiếu đặt:</Text> <Text strong>{pblDetailData.maPhieu}</Text></Col>
-              <Col span={8}><Text type="secondary">NCC:</Text> <Text strong>{pblDetailData.nccTen}</Text></Col>
-              <Col span={8}><Text type="secondary">Ngày tạo:</Text> <Text>{pblDetailData.ngay}</Text></Col>
-            </Row>
-            <Divider style={{ margin: '8px 0' }}>Chi tiết lỗi</Divider>
-            <Table size="small" pagination={false} dataSource={pblDetailData.items.map((it, i) => ({ ...it, key: i }))}
-              columns={[
-                { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
-                { title: 'Loại lỗi', dataIndex: 'loaiLoi', width: 110, render: v => v === 'ThieuHang' ? <Tag color="orange">Thiếu hàng</Tag> : <Tag color="red">Hàng hỏng</Tag> },
-                { title: 'SL thiếu', dataIndex: 'slThieu', width: 80, align: 'center' },
-                { title: 'SL hỏng', dataIndex: 'slHong', width: 80, align: 'center' },
-                { title: 'Ghi chú', dataIndex: 'ghiChuLoi' },
-              ]} />
-          </>
-        )}
-      </Modal>
     </div>
   )
 }

@@ -290,6 +290,7 @@ export default function DongGoi() {
   const allChecked = done === total
   const status = statusMap[selectedOrder.trangThai]
   const hasThieu = selectedOrder.items.some((i) => i.thieu > 0)
+  const hasUnresolvedThieu = selectedOrder.items.some((i) => i.thieu > 0 && i.trangThaiBoSung !== 'DaBoSung')
 
   return (
     <div className="pack-container">
@@ -320,12 +321,12 @@ export default function DongGoi() {
           <Button
             type="primary"
             icon={<CheckOutlined />}
-            disabled={!allChecked || selectedOrder.trangThai === 'HoanThanh'}
+            disabled={!allChecked || selectedOrder.trangThai === 'HoanThanh' || hasUnresolvedThieu}
             onClick={completeOrder}
             className="pack-btn pack-btn-done"
             style={{ height: 44 }}
           >
-            Hoàn thành đóng gói
+            {hasUnresolvedThieu ? 'Có món thiếu chưa bổ sung' : 'Hoàn thành đóng gói'}
           </Button>
         </Space>
       </div>

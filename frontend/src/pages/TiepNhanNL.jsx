@@ -166,8 +166,13 @@ export default function TiepNhanNL() {
   }
 
   const handleXuLyPBL = (maLoi) => {
+    const pbl = dsPhieuLoi.find(p => p.maLoi === maLoi)
     setDsPhieuLoi(prev => prev.map(p => p.maLoi === maLoi ? { ...p, trangThai: 'DaXuLy' } : p))
-    message.success(`Đã đánh dấu phiếu ${maLoi} là "Đã xử lý"`)
+    // Cập nhật trạng thái tiếp nhận: CoLoi → DaNhapKho
+    if (pbl) {
+      setTiepNhanData(prev => ({ ...prev, [pbl.maPhieu]: { status: 'DaNhapKho' } }))
+    }
+    message.success(`Đã xử lý phiếu ${maLoi} — Phiếu tiếp nhận đã chuyển sang "Đã nhập kho"`)
   }
 
   // Stats

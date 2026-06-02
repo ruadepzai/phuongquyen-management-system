@@ -91,7 +91,7 @@ const mockPackOrders = [
     trangThai: 'DangDongGoi',
     items: [
       { id: 1, mon: 'Bò sốt tiêu đen', slYeuCau: 12, slThucTe: 12, checked: true },
-      { id: 2, mon: 'Cá chiên giòn', slYeuCau: 12, slThucTe: 10, checked: true, thieu: 2, lyDo: 'Bếp chưa chiên kịp' },
+      { id: 2, mon: 'Cá chiên giòn', slYeuCau: 12, slThucTe: 10, checked: true, thieu: 2, lyDo: 'Bếp chưa chiên kịp', trangThaiBoSung: 'ChuaBoSung' },
       { id: 3, mon: 'Gỏi ngó sen', slYeuCau: 12, slThucTe: 12, checked: true },
       { id: 4, mon: 'Xôi vò', slYeuCau: 12, slThucTe: null, checked: false },
       { id: 5, mon: 'Canh cua', slYeuCau: 12, slThucTe: null, checked: false },

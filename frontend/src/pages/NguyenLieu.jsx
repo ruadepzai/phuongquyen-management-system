@@ -442,7 +442,18 @@ export default function NguyenLieu() {
                         </div>
                       )}
                       {state.status === 'DaLuu' && (
-                        <div style={{ textAlign: 'right' }}><Tag color="success" style={{ fontSize: 14, padding: '4px 12px' }}>✅ Đã tạo phiếu đặt hàng</Tag></div>
+                        <div style={{ textAlign: 'right' }}>
+                          <Space>
+                            <Tag color="success" style={{ fontSize: 14, padding: '4px 12px' }}>✅ Đã tạo phiếu đặt hàng</Tag>
+                            <Button size="small" icon={<FileTextOutlined />}
+                              onClick={() => {
+                                const phieus = lichSuPhieu.filter(p => p.ngay === dateStr)
+                                if (phieus.length > 0) setDuTruPreview({ open: true, phieus })
+                                else message.info('Không tìm thấy phiếu cho ngày này')
+                              }}
+                              style={{ borderRadius: 8 }}>Xem phiếu</Button>
+                          </Space>
+                        </div>
                       )}
                     </div>
                   ),
@@ -457,7 +468,70 @@ export default function NguyenLieu() {
         </div>
       ),
     },
-
+    // ===== TAB 4: Phiếu dự trù đã tạo =====
+    {
+      key: 'phieudatao',
+      label: <span><FileTextOutlined style={{ marginRight: 6 }} />Phiếu đã tạo ({lichSuPhieu.length})</span>,
+      children: (() => {
+        // Gom phiếu theo ngày
+        const grouped = {}
+        lichSuPhieu.forEach(p => {
+          if (!grouped[p.ngay]) grouped[p.ngay] = []
+          grouped[p.ngay].push(p)
+        })
+        const sortedDates = Object.keys(grouped).sort((a, b) => dayjs(a).diff(dayjs(b)))
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {lichSuPhieu.length === 0 ? (
+              <Card style={glassCard}><Empty description="Chưa có phiếu nào được tạo" /></Card>
+            ) : (
+              <Card style={glassCard}>
+                <Collapse
+                  items={sortedDates.map(dateStr => ({
+                    key: dateStr,
+                    label: (
+                      <Space size="middle">
+                        <Text strong style={{ fontSize: 15 }}>📅 {dayjs(dateStr).format('DD/MM/YYYY')}</Text>
+                        <Tag color="blue">{grouped[dateStr].length} phiếu</Tag>
+                        <Tag color="cyan">{grouped[dateStr].reduce((s, p) => s + p.soNL, 0)} nguyên liệu</Tag>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {grouped[dateStr].map(phieu => (
+                          <Card key={phieu.maPhieu} size="small"
+                            style={{ borderRadius: 12, border: '1px solid #e8e8e8' }}
+                            styles={{ body: { padding: '12px 16px' } }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                              <Space size="middle" wrap>
+                                <Text strong style={{ color: '#5b8def', fontSize: 14 }}>{phieu.maPhieu}</Text>
+                                <Tag color="geekblue">{phieu.nccTen}</Tag>
+                                {phieu.nccSdt && <Text type="secondary">📞 {phieu.nccSdt}</Text>}
+                                <Tag color="blue">{phieu.soNL} NL</Tag>
+                                <Tag color={phieu.trangThai === 'ChoGiaoHang' ? 'gold' : 'success'} style={{ borderRadius: 8 }}>
+                                  {phieu.trangThai === 'ChoGiaoHang' ? 'Chờ giao' : 'Đã giao'}
+                                </Tag>
+                                <Text type="secondary" style={{ fontSize: 12 }}>Tạo: {phieu.thoiGian}</Text>
+                              </Space>
+                              <Button size="small" icon={<FileTextOutlined />}
+                                onClick={() => setDuTruPreview({ open: true, phieus: [phieu] })}
+                                style={{ borderRadius: 8 }}>Xem chi tiết</Button>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ),
+                  }))}
+                  expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
+                  style={{ background: 'transparent', border: 'none' }}
+                  size="large"
+                />
+              </Card>
+            )}
+          </div>
+        )
+      })(),
+    },
 
   ]
 

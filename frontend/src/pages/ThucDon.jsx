@@ -346,25 +346,6 @@ export default function ThucDon() {
     <div>
       <h2 className="dashboard-title">Quản lý Thực đơn</h2>
 
-      {/* Stat cards */}
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
-        <Col xs={8}>
-          <div style={statCard('#5b8def')}>
-            <Statistic title="Tổng thực đơn" value={thucDons.length} prefix={<AppstoreOutlined />} valueStyle={{ color: '#5b8def' }} />
-          </div>
-        </Col>
-        <Col xs={8}>
-          <div style={statCard('#52c41a')}>
-            <Statistic title="Tổng món ăn" value={monAns.length} prefix={<CoffeeOutlined />} valueStyle={{ color: '#52c41a' }} />
-          </div>
-        </Col>
-        <Col xs={8}>
-          <div style={statCard('#faad14')}>
-            <Statistic title="Danh mục" value={danhMucs.length} prefix={<TagsOutlined />} valueStyle={{ color: '#faad14' }} />
-          </div>
-        </Col>
-      </Row>
-
       <Tabs defaultActiveKey="thucdon" size="large" items={[
         { key: 'thucdon', label: <span><AppstoreOutlined style={{ marginRight: 6 }} />Thực đơn</span>, children: tabThucDon },
         { key: 'monan', label: <span><CoffeeOutlined style={{ marginRight: 6 }} />Món ăn ({monAns.length})</span>, children: tabMonAn },

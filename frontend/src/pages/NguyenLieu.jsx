@@ -149,6 +149,8 @@ export default function NguyenLieu() {
     'Thịt & Chả', 'Hải sản', 'Rau củ & Nấm', 'Khô & Gia vị', 'Thịt tươi sống', 'Cá nước ngọt',
   ])
   const [newNhomHang, setNewNhomHang] = useState('')
+  // Preview phiếu dự trù
+  const [duTruPreview, setDuTruPreview] = useState({ open: false, phieus: [] })
 
 
 
@@ -247,6 +249,7 @@ export default function NguyenLieu() {
     setLichSuPhieu(prev => [...prev, ...newPhieus])
     setDuTruState(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], status: 'DaLuu' } }))
     message.success(`Đã tạo ${newPhieus.length} phiếu đặt hàng (theo NCC) cho ngày ${dayjs(dateStr).format('DD/MM/YYYY')}!`)
+    setDuTruPreview({ open: true, phieus: newPhieus })
   }
 
   // ===== TIẾP NHẬN =====
@@ -270,11 +273,6 @@ export default function NguyenLieu() {
       label: <span><ExperimentOutlined style={{ marginRight: 6 }} />Nguyên liệu</span>,
       children: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <Row gutter={16}>
-            <Col span={8}><div style={statCard('#5b8def')}><Statistic title="Tổng nguyên liệu" value={nguyenLieuList.length} prefix={<ExperimentOutlined />} valueStyle={{ color: '#5b8def' }} /></div></Col>
-            <Col span={8}><div style={statCard('#52c41a')}><Statistic title="Nhà cung cấp" value={nccList.length} prefix={<TeamOutlined />} valueStyle={{ color: '#52c41a' }} /></div></Col>
-            <Col span={8}><div style={statCard('#faad14')}><Statistic title="NL có ≥2 NCC" value={nguyenLieuList.filter(n => n.ncc.length >= 2).length} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#faad14' }} /></div></Col>
-          </Row>
           <Card style={glassCard} extra={
             <Space>
               <Input placeholder="Tìm nguyên liệu..." prefix={<SearchOutlined />} style={{ width: 220 }} allowClear
@@ -349,21 +347,15 @@ export default function NguyenLieu() {
       label: <span><CalendarOutlined style={{ marginRight: 6 }} />Dự trù theo ngày</span>,
       children: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <Row gutter={16} align="middle">
-            <Col span={4}><div style={statCard('#5b8def')}><Statistic title="Tổng đơn" value={tongDon} prefix={<ShoppingCartOutlined />} valueStyle={{ color: '#5b8def' }} /></div></Col>
-            <Col span={4}><div style={statCard('#52c41a')}><Statistic title="Tổng mâm" value={tongMam} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} /></div></Col>
-            <Col span={4}><div style={statCard('#fa541c')}><Statistic title="Ngày có đơn" value={allDates.length} prefix={<CalendarOutlined />} valueStyle={{ color: '#fa541c' }} /></div></Col>
-            <Col span={4}><div style={statCard('#722ed1')}><Statistic title="Loại NL tổng" value={tongDuTru.length} prefix={<ExperimentOutlined />} valueStyle={{ color: '#722ed1' }} /></div></Col>
-            <Col span={8} style={{ textAlign: 'right' }}>
-              <Space>
-                <Text type="secondary">Lọc ngày:</Text>
-                <DatePicker
-                  placeholder="Tất cả ngày"
-                  onChange={(date) => setFilterDuTruDate(date ? date.format('YYYY-MM-DD') : null)}
-                  allowClear style={{ borderRadius: 10, width: 160 }} />
-              </Space>
-            </Col>
-          </Row>
+          <Card style={glassCard} styles={{ body: { padding: '12px 16px' } }}>
+            <Space>
+              <Text type="secondary">Lọc ngày:</Text>
+              <DatePicker
+                placeholder="Tất cả ngày"
+                onChange={(date) => setFilterDuTruDate(date ? date.format('YYYY-MM-DD') : null)}
+                allowClear style={{ borderRadius: 10, width: 160 }} />
+            </Space>
+          </Card>
           <Card style={glassCard} styles={{ body: { padding: 12 } }}>
             <Collapse
               items={(filterDuTruDate ? allDates.filter(d => d === filterDuTruDate) : allDates).map(dateStr => {
@@ -552,6 +544,46 @@ export default function NguyenLieu() {
         </Form>
       </Modal>
 
+
+      {/* ===== Preview phiếu dự trù ===== */}
+      <Modal
+        title={<Space><CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} /><span style={{ fontSize: 17 }}>Phiếu đặt hàng đã tạo</span><Tag color="success">{duTruPreview.phieus.length} phiếu</Tag></Space>}
+        open={duTruPreview.open}
+        onCancel={() => setDuTruPreview({ open: false, phieus: [] })}
+        footer={[<Button key="close" type="primary" onClick={() => setDuTruPreview({ open: false, phieus: [] })}>Đóng</Button>]}
+        width={700}
+      >
+        {duTruPreview.phieus.map((p, idx) => {
+          const tongTien = p.data.reduce((s, r) => s + (r.donGiaNhap || 0) * r.slThucNhap, 0)
+          return (
+            <div key={p.maPhieu} style={{ marginBottom: idx < duTruPreview.phieus.length - 1 ? 20 : 0 }}>
+              <div style={{ background: 'rgba(91,141,239,0.06)', borderRadius: 12, padding: 14, marginBottom: 12, border: '1px solid rgba(91,141,239,0.12)' }}>
+                <Row gutter={16}>
+                  <Col span={8}><Text type="secondary">Mã phiếu</Text><div><Text strong style={{ color: '#5b8def' }}>{p.maPhieu}</Text></div></Col>
+                  <Col span={8}><Text type="secondary">NCC</Text><div><Text strong>{p.nccTen}</Text></div></Col>
+                  <Col span={8}><Text type="secondary">SĐT</Text><div><Text>{p.nccSdt || '—'}</Text></div></Col>
+                </Row>
+              </div>
+              <Table size="small" pagination={false}
+                dataSource={p.data.map(r => ({ ...r, key: r.ma, thanhTien: (r.donGiaNhap || 0) * r.slThucNhap }))}
+                columns={[
+                  { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
+                  { title: 'ĐV', dataIndex: 'donVi', width: 50, align: 'center' },
+                  { title: 'SL đặt', dataIndex: 'slThucNhap', width: 80, align: 'center', render: v => <Tag color="blue">{v}</Tag> },
+                  { title: 'Đơn giá', dataIndex: 'donGiaNhap', width: 110, align: 'right', render: v => v ? formatVND(v) : '—' },
+                  { title: 'Thành tiền', dataIndex: 'thanhTien', width: 120, align: 'right', render: v => <Text strong>{formatVND(v)}</Text> },
+                ]}
+                summary={() => (
+                  <Table.Summary.Row style={{ background: 'rgba(91,141,239,0.05)' }}>
+                    <Table.Summary.Cell index={0} colSpan={4} align="right"><Text strong>Tổng:</Text></Table.Summary.Cell>
+                    <Table.Summary.Cell index={1} align="right"><Text strong style={{ color: '#52c41a' }}>{formatVND(tongTien)}</Text></Table.Summary.Cell>
+                  </Table.Summary.Row>
+                )} />
+              {idx < duTruPreview.phieus.length - 1 && <Divider />}
+            </div>
+          )
+        })}
+      </Modal>
 
     </div>
   )

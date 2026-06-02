@@ -309,30 +309,6 @@ export default function DonHang() {
     <div>
       <h2 className="dashboard-title">Quản lý Đơn hàng</h2>
 
-      {/* Stats */}
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
-            <Statistic title="Tổng đơn" value={totalOrders} prefix={<ShoppingCartOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
-            <Statistic title="Chờ xử lý" value={pending} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#faad14' }} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
-            <Statistic title="Đang đóng gói" value={packing} prefix={<SyncOutlined />} valueStyle={{ color: '#1890ff' }} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} className="glass-effect stat-card" style={{ borderRadius: 16 }}>
-            <Statistic title="Đã giao" value={delivered} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
-          </Card>
-        </Col>
-      </Row>
-
       {/* Filter bar */}
       <Card bordered={false} className="glass-effect" style={{ borderRadius: 16, marginBottom: 20 }}>
         <Row gutter={[12, 12]} align="middle">

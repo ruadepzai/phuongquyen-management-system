@@ -267,31 +267,6 @@ export default function HoaDon() {
     <div>
       <h2 className="dashboard-title">Quản lý Hóa đơn</h2>
 
-      {/* Stats */}
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
-        <Col xs={12} sm={6}>
-          <div style={statCard('#5b8def')}>
-            <Statistic title="Tổng hóa đơn" value={tongHD} prefix={<FileTextOutlined />} valueStyle={{ color: '#5b8def' }} />
-          </div>
-        </Col>
-        <Col xs={12} sm={6}>
-          <div style={statCard('#52c41a')}>
-            <Statistic title="Đã thanh toán" value={daTT} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
-          </div>
-        </Col>
-        <Col xs={12} sm={6}>
-          <div style={statCard('#faad14')}>
-            <Statistic title="Chờ thanh toán" value={chuaTT} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#faad14' }} />
-          </div>
-        </Col>
-        <Col xs={12} sm={6}>
-          <div style={statCard('#722ed1')}>
-            <Statistic title="Doanh thu (đã TT)" value={doanhThu} prefix={<DollarOutlined />} valueStyle={{ color: '#722ed1' }}
-              formatter={val => new Intl.NumberFormat('vi-VN').format(val / 1000000) + 'tr'} />
-          </div>
-        </Col>
-      </Row>
-
       {/* Filter bar */}
       <Card bordered={false} className="glass-effect" style={{ borderRadius: 16, marginBottom: 20 }}>
         <Row gutter={[12, 12]} align="middle">
@@ -347,7 +322,13 @@ export default function HoaDon() {
           detailModal.data?.trangThai === 'ChuaThanhToan' && (
             <Button key="pay" type="primary" style={{ background: '#52c41a', borderColor: '#52c41a' }}
               icon={<CheckCircleOutlined />}
-              onClick={() => { openPayModal(detailModal.data.key); setDetailModal({ open: false, data: null }) }}>
+              onClick={() => {
+                const hd = detailModal.data
+                if (!hd.hinhThuc) { message.warning('Vui lòng chọn hình thức thanh toán trước!'); return }
+                setHoaDons(prev => prev.map(h => h.key === hd.key ? { ...h, trangThai: 'DaThanhToan' } : h))
+                message.success('Đã xác nhận thanh toán!')
+                setDetailModal({ open: false, data: null })
+              }}>
               Xác nhận thanh toán
             </Button>
           ),
@@ -371,17 +352,20 @@ export default function HoaDon() {
                 <Descriptions.Item label="Tiền cọc đã TT">
                   <Text style={{ color: '#52c41a' }}>{formatVND(tienCoc)}</Text>
                 </Descriptions.Item>
-                {hd.trangThai === 'DaThanhToan' && hd.hinhThuc && (
-                  <Descriptions.Item label="Hình thức TT">
+                <Descriptions.Item label="Hình thức TT">
+                  {hd.trangThai === 'DaThanhToan' && hd.hinhThuc ? (
                     <Tag icon={hinhThucConfig[hd.hinhThuc]?.icon} color={hinhThucConfig[hd.hinhThuc]?.color}
                       style={{ borderRadius: 12 }}>{hinhThucConfig[hd.hinhThuc]?.text}</Tag>
-                  </Descriptions.Item>
-                )}
-                {hd.trangThai === 'ChuaThanhToan' && (
-                  <Descriptions.Item label="Hình thức TT">
-                    <Tag color="default">Chưa chọn</Tag>
-                  </Descriptions.Item>
-                )}
+                  ) : (
+                    <Select placeholder="Chọn hình thức" value={hd.hinhThuc || undefined}
+                      onChange={v => {
+                        setHoaDons(prev => prev.map(h => h.key === hd.key ? { ...h, hinhThuc: v } : h))
+                        setDetailModal(prev => ({ ...prev, data: { ...prev.data, hinhThuc: v } }))
+                      }}
+                      style={{ width: 180 }}
+                      options={Object.entries(hinhThucConfig).map(([v, cfg]) => ({ value: v, label: cfg.text }))} />
+                  )}
+                </Descriptions.Item>
                 <Descriptions.Item label="TỔNG THANH TOÁN" span={2}>
                   <Text strong style={{ fontSize: 18, color: 'var(--primary)' }}>{formatVND(thanhTien)}</Text>
                 </Descriptions.Item>
@@ -461,19 +445,6 @@ export default function HoaDon() {
         </Form>
       </Modal>
 
-      {/* Payment Method Modal */}
-      <Modal title="Chọn hình thức thanh toán" open={payModal.open}
-        onOk={handleConfirmPayment}
-        onCancel={() => { setPayModal({ open: false, key: null }); setPayMethod(null) }}
-        okText="Xác nhận" cancelText="Hủy"
-        okButtonProps={{ style: { background: '#52c41a', borderColor: '#52c41a' } }}>
-        <div style={{ marginTop: 16 }}>
-          <Text strong>Hình thức thanh toán:</Text>
-          <Select placeholder="Chọn hình thức" value={payMethod} onChange={v => setPayMethod(v)}
-            style={{ width: '100%', marginTop: 8, borderRadius: 10 }}
-            options={Object.entries(hinhThucConfig).map(([v, cfg]) => ({ value: v, label: cfg.text }))} />
-        </div>
-      </Modal>
     </div>
   )
 }

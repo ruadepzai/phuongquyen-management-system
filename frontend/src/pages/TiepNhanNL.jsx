@@ -358,14 +358,6 @@ export default function TiepNhanNL() {
         <Text type="secondary">Kiểm tra, đối chiếu và nhập kho nguyên liệu từ nhà cung cấp</Text>
       </div>
 
-      {/* Stats */}
-      <Row gutter={16} style={{ marginBottom: 20 }}>
-        <Col span={6}><div style={statCard('#5b8def')}><Statistic title="Tổng phiếu" value={tongPhieu} prefix={<ExperimentOutlined />} valueStyle={{ color: '#5b8def' }} /></div></Col>
-        <Col span={6}><div style={statCard('#faad14')}><Statistic title="Chờ giao" value={choGiao} prefix={<CalendarOutlined />} valueStyle={{ color: '#faad14' }} /></div></Col>
-        <Col span={6}><div style={statCard('#52c41a')}><Statistic title="Đã nhập kho" value={daNhapKho} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} /></div></Col>
-        <Col span={6}><div style={statCard('#ff4d4f')}><Statistic title="Phiếu lỗi chờ XL" value={coLoi} prefix={<WarningOutlined />} valueStyle={{ color: '#ff4d4f' }} /></div></Col>
-      </Row>
-
       <Tabs items={tabItems} defaultActiveKey="tiepnhan" size="large"
         tabBarStyle={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '4px 8px', marginBottom: 16 }} />
 

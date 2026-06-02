@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import {
   Tabs, Table, Card, Tag, Space, Typography, Collapse,
   Input, Select, Statistic, Row, Col, Tooltip, Badge, Empty,
-  Modal, Form, Button, message, Divider, InputNumber, Popconfirm
+  Modal, Form, Button, message, Divider, InputNumber, Popconfirm, DatePicker
 } from 'antd'
 import {
   ShoppingCartOutlined, CalendarOutlined, SearchOutlined,
@@ -142,6 +142,13 @@ export default function NguyenLieu() {
   // Dự trù
   const [duTruState, setDuTruState] = useState({})
   const [lichSuPhieu, setLichSuPhieu] = useState([])
+  const [filterDuTruDate, setFilterDuTruDate] = useState(null)
+
+  // Nhóm hàng NCC - cho phép thêm mới
+  const [nhomHangList, setNhomHangList] = useState([
+    'Thịt & Chả', 'Hải sản', 'Rau củ & Nấm', 'Khô & Gia vị', 'Thịt tươi sống', 'Cá nước ngọt',
+  ])
+  const [newNhomHang, setNewNhomHang] = useState('')
 
 
 
@@ -342,15 +349,24 @@ export default function NguyenLieu() {
       label: <span><CalendarOutlined style={{ marginRight: 6 }} />Dự trù theo ngày</span>,
       children: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <Row gutter={16}>
-            <Col span={6}><div style={statCard('#5b8def')}><Statistic title="Tổng đơn" value={tongDon} prefix={<ShoppingCartOutlined />} valueStyle={{ color: '#5b8def' }} /></div></Col>
-            <Col span={6}><div style={statCard('#52c41a')}><Statistic title="Tổng mâm" value={tongMam} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} /></div></Col>
-            <Col span={6}><div style={statCard('#fa541c')}><Statistic title="Ngày có đơn" value={allDates.length} prefix={<CalendarOutlined />} valueStyle={{ color: '#fa541c' }} /></div></Col>
-            <Col span={6}><div style={statCard('#722ed1')}><Statistic title="Loại NL tổng" value={tongDuTru.length} prefix={<ExperimentOutlined />} valueStyle={{ color: '#722ed1' }} /></div></Col>
+          <Row gutter={16} align="middle">
+            <Col span={4}><div style={statCard('#5b8def')}><Statistic title="Tổng đơn" value={tongDon} prefix={<ShoppingCartOutlined />} valueStyle={{ color: '#5b8def' }} /></div></Col>
+            <Col span={4}><div style={statCard('#52c41a')}><Statistic title="Tổng mâm" value={tongMam} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} /></div></Col>
+            <Col span={4}><div style={statCard('#fa541c')}><Statistic title="Ngày có đơn" value={allDates.length} prefix={<CalendarOutlined />} valueStyle={{ color: '#fa541c' }} /></div></Col>
+            <Col span={4}><div style={statCard('#722ed1')}><Statistic title="Loại NL tổng" value={tongDuTru.length} prefix={<ExperimentOutlined />} valueStyle={{ color: '#722ed1' }} /></div></Col>
+            <Col span={8} style={{ textAlign: 'right' }}>
+              <Space>
+                <Text type="secondary">Lọc ngày:</Text>
+                <DatePicker
+                  placeholder="Tất cả ngày"
+                  onChange={(date) => setFilterDuTruDate(date ? date.format('YYYY-MM-DD') : null)}
+                  allowClear style={{ borderRadius: 10, width: 160 }} />
+              </Space>
+            </Col>
           </Row>
           <Card style={glassCard} styles={{ body: { padding: 12 } }}>
             <Collapse
-              items={allDates.map(dateStr => {
+              items={(filterDuTruDate ? allDates.filter(d => d === filterDuTruDate) : allDates).map(dateStr => {
                 const dons = mockDonHangTheoNgay[dateStr]
                 const tongMamNgay = dons.reduce((s, d) => s + d.soMam, 0)
                 const state = duTruState[dateStr] || { status: 'ChuaTinh', data: [] }
@@ -505,10 +521,29 @@ export default function NguyenLieu() {
             <Input placeholder="Chợ Đồng Xuân" />
           </Form.Item>
           <Form.Item name="nhom" label="Nhóm hàng" rules={[{ required: true }]}>
-            <Select placeholder="Chọn" options={[
-              { value: 'Thịt & Chả' }, { value: 'Hải sản' }, { value: 'Rau củ & Nấm' },
-              { value: 'Khô & Gia vị' }, { value: 'Thịt tươi sống' }, { value: 'Cá nước ngọt' },
-            ]} />
+            <Select placeholder="Chọn hoặc thêm mới" showSearch
+              filterOption={(input, opt) => opt.label?.toLowerCase().includes(input.toLowerCase())}
+              options={nhomHangList.map(v => ({ value: v, label: v }))}
+              dropdownRender={(menu) => (
+                <>
+                  {menu}
+                  <Divider style={{ margin: '8px 0' }} />
+                  <div style={{ display: 'flex', gap: 8, padding: '0 8px 8px' }}>
+                    <Input placeholder="Nhóm mới..." value={newNhomHang}
+                      onChange={e => setNewNhomHang(e.target.value)}
+                      onKeyDown={e => e.stopPropagation()} style={{ borderRadius: 8 }} />
+                    <Button type="primary" size="small" style={{ borderRadius: 8 }}
+                      onClick={() => {
+                        if (newNhomHang && !nhomHangList.includes(newNhomHang)) {
+                          setNhomHangList(prev => [...prev, newNhomHang])
+                          nccForm.setFieldsValue({ nhom: newNhomHang })
+                          setNewNhomHang('')
+                          message.success(`Đã thêm nhóm "${newNhomHang}"`)
+                        }
+                      }}>Thêm</Button>
+                  </div>
+                </>
+              )} />
           </Form.Item>
           <Form.Item name="congNo" label="Công nợ hiện tại">
             <InputNumber style={{ width: '100%' }} min={0} step={100000}

@@ -547,25 +547,46 @@ export default function DongGoi() {
               <Text type="secondary">Dịch vụ nấu cỗ tiệc chuyên nghiệp</Text>
             </div>
             <Divider dashed style={{ margin: '12px 0' }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div><Text type="secondary">Mã đơn:</Text> <Text strong style={{ fontSize: 16 }}>{labelModal.order.maDH}</Text></div>
               <div><Text type="secondary">Khách hàng:</Text> <Text strong>{labelModal.order.khachHang}</Text></div>
-              <div><Text type="secondary">Địa chỉ:</Text> <Text>{labelModal.order.diaChi}</Text></div>
-              <div><Text type="secondary">Giao:</Text> <Text strong>{labelModal.order.ngayGiao} lúc {labelModal.order.gioGiao}</Text></div>
-              <div><Text type="secondary">Loại tiệc:</Text> <Text>{labelModal.order.loai} • {labelModal.order.soMam} mâm</Text></div>
+              <div><Text type="secondary">Địa chỉ giao:</Text> <Text>{labelModal.order.diaChi}</Text></div>
+              <div><Text type="secondary">Ngày giao:</Text> <Text strong>{labelModal.order.ngayGiao} lúc {labelModal.order.gioGiao}</Text></div>
+              <div><Text type="secondary">Loại tiệc:</Text> <Text>{labelModal.order.loai}</Text> • <Text strong>{labelModal.order.soMam} mâm</Text></div>
+              {labelModal.order.ghiChu && <div><Text type="secondary">Ghi chú:</Text> <Text italic style={{ color: '#fa541c' }}>{labelModal.order.ghiChu}</Text></div>}
             </div>
             <Divider dashed style={{ margin: '12px 0' }} />
-            <div style={{ fontSize: 12 }}>
-              <Text strong>Danh sách món:</Text>
-              <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>Danh sách món:</Text>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#f5f5f5' }}>
+                  <th style={{ border: '1px solid #e8e8e8', padding: '6px 8px', textAlign: 'left' }}>Tên món</th>
+                  <th style={{ border: '1px solid #e8e8e8', padding: '6px 8px', width: 70, textAlign: 'center' }}>SL yêu cầu</th>
+                  <th style={{ border: '1px solid #e8e8e8', padding: '6px 8px', width: 70, textAlign: 'center' }}>SL thực tế</th>
+                  <th style={{ border: '1px solid #e8e8e8', padding: '6px 8px', width: 80, textAlign: 'center' }}>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
                 {labelModal.order.items.map(item => (
-                  <Tag key={item.id} style={{ borderRadius: 6, fontSize: 11 }}>{item.mon} x{item.slYeuCau}</Tag>
+                  <tr key={item.id} style={{ background: item.thieu > 0 ? 'rgba(255,77,79,0.05)' : 'transparent' }}>
+                    <td style={{ border: '1px solid #e8e8e8', padding: '5px 8px' }}>{item.mon}</td>
+                    <td style={{ border: '1px solid #e8e8e8', padding: '5px 8px', textAlign: 'center' }}>{item.slYeuCau}</td>
+                    <td style={{ border: '1px solid #e8e8e8', padding: '5px 8px', textAlign: 'center', color: item.thieu > 0 ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>
+                      {item.slThucTe ?? item.slYeuCau}
+                    </td>
+                    <td style={{ border: '1px solid #e8e8e8', padding: '5px 8px', textAlign: 'center', fontSize: 11 }}>
+                      {item.thieu > 0 ? `Thiếu ${item.thieu}` : '✓'}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
+              </tbody>
+            </table>
             <Divider dashed style={{ margin: '12px 0' }} />
             <div style={{ textAlign: 'center' }}>
-              <Text type="secondary" style={{ fontSize: 11 }}>Xin cảm ơn quý khách! ❤️</Text>
+              <div style={{ display: 'inline-block', border: '2px solid #d9d9d9', borderRadius: 8, padding: '8px 16px', marginBottom: 8 }}>
+                <Text type="secondary" style={{ fontSize: 10 }}>[ MÃ VẠCH / QR CODE ]</Text>
+              </div>
+              <div><Text type="secondary" style={{ fontSize: 11 }}>Xin cảm ơn quý khách! ❤️</Text></div>
             </div>
           </div>
         )}

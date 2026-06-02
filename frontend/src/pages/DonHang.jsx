@@ -415,8 +415,20 @@ export default function DonHang() {
         open={detailVisible} onCancel={() => setDetailVisible(false)}
         footer={[
           <Button key="print" icon={<PrinterOutlined />} onClick={() => message.info('Chức năng in đang phát triển')}>In phiếu</Button>,
+          isAdmin && <Button key="invoice" type="default" style={{ borderColor: '#52c41a', color: '#52c41a', borderRadius: 10 }}
+            onClick={() => {
+              const invoiceData = {
+                maDH: selectedOrder.maDH,
+                khachHang: selectedOrder.khachHang,
+                tongTien: selectedOrder.tongTien,
+                chiTiet: selectedOrder.chiTiet,
+              }
+              localStorage.setItem('pendingInvoice', JSON.stringify(invoiceData))
+              message.success('Đã tạo hóa đơn! Chuyển sang tab Hóa đơn để xem.')
+              setDetailVisible(false)
+            }}>Tạo hóa đơn</Button>,
           <Button key="close" type="primary" onClick={() => setDetailVisible(false)}>Đóng</Button>,
-        ]}
+        ].filter(Boolean)}
         width={720}
       >
         {selectedOrder && (

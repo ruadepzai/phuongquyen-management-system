@@ -7,7 +7,7 @@ import {
 import {
   AppstoreOutlined, CoffeeOutlined, TagsOutlined,
   PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined,
-  EyeOutlined, DollarOutlined, UnorderedListOutlined
+  EyeOutlined, DollarOutlined, UnorderedListOutlined, MinusCircleOutlined
 } from '@ant-design/icons'
 
 const { Title, Text } = Typography
@@ -103,6 +103,15 @@ export default function ThucDon() {
   const [dmForm] = Form.useForm()
 
   // ===== THỰC ĐƠN CRUD =====
+  // Auto-calculate đơn giá khi chọn món
+  const handleMonAnChange = (selectedMons) => {
+    const total = selectedMons.reduce((sum, maMon) => {
+      const mon = monAns.find(m => m.maMon === maMon)
+      return sum + (mon?.donGia || 0)
+    }, 0)
+    tdForm.setFieldsValue({ donGia: total })
+  }
+
   const handleSaveTD = () => {
     tdForm.validateFields().then(vals => {
       if (tdModal.editing) {
@@ -377,6 +386,7 @@ export default function ThucDon() {
           </Form.Item>
           <Form.Item name="monAn" label="Chọn món ăn" rules={[{ required: true, message: 'Chọn ít nhất 1 món' }]}>
             <Select mode="multiple" placeholder="Chọn các món trong thực đơn"
+              onChange={handleMonAnChange}
               options={monAns.map(m => {
                 const dm = danhMucs.find(d => d.maDM === m.maDM)
                 return { value: m.maMon, label: `${m.tenMon} — ${dm?.tenDanhMuc || ''} (${formatVND(m.donGia)})` }
@@ -416,7 +426,7 @@ export default function ThucDon() {
       {/* Modal Món ăn */}
       <Modal title={monModal.editing ? 'Sửa món ăn' : 'Thêm món ăn mới'} open={monModal.open}
         onOk={handleSaveMon} onCancel={() => { setMonModal({ open: false, editing: null }); monForm.resetFields() }}
-        okText={monModal.editing ? 'Cập nhật' : 'Thêm'} cancelText="Hủy">
+        okText={monModal.editing ? 'Cập nhật' : 'Thêm'} cancelText="Hủy" width={640}>
         <Form form={monForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="tenMon" label="Tên món" rules={[{ required: true }]}>
             <Input placeholder="VD: Gà luộc lá chanh" style={{ borderRadius: 10 }} />
@@ -437,6 +447,51 @@ export default function ThucDon() {
           <Form.Item name="moTa" label="Mô tả">
             <Input.TextArea rows={2} placeholder="Mô tả món ăn..." />
           </Form.Item>
+          <Divider orientation="left" style={{ fontSize: 13, margin: '8px 0 12px' }}>Nguyên liệu & Định lượng / mâm</Divider>
+          <Form.List name="nguyenLieu">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...rest }) => (
+                  <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                    <Col span={9}>
+                      <Form.Item {...rest} name={[name, 'ten']} rules={[{ required: true, message: 'Chọn NL' }]} style={{ marginBottom: 0 }}>
+                        <Select placeholder="Nguyên liệu" showSearch
+                          filterOption={(input, opt) => opt.label.toLowerCase().includes(input.toLowerCase())}
+                          options={[
+                            'Thịt lợn','Thịt gà','Tôm sú','Cá chép','Rau muống','Hành lá',
+                            'Gạo nếp','Nấm hương','Miến dong','Giò lụa','Trứng gà','Đậu phụ',
+                            'Bò','Bún','Mắc mắm','Dầu ăn','Muối','Đường','Tỏi','Gừng',
+                          ].map(v => ({ value: v, label: v }))} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                      <Form.Item {...rest} name={[name, 'dinhLuong']} rules={[{ required: true, message: 'Nhập SL' }]} style={{ marginBottom: 0 }}>
+                        <InputNumber min={0} placeholder="Số lượng" style={{ width: '100%' }} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                      <Form.Item {...rest} name={[name, 'donVi']} initialValue="g" style={{ marginBottom: 0 }}>
+                        <Select options={[
+                          { value: 'g', label: 'gram' },
+                          { value: 'kg', label: 'kg' },
+                          { value: 'ml', label: 'ml' },
+                          { value: 'lít', label: 'lít' },
+                          { value: 'quả', label: 'quả' },
+                          { value: 'bó', label: 'bó' },
+                        ]} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={3} style={{ textAlign: 'center' }}>
+                      <MinusCircleOutlined onClick={() => remove(name)} style={{ color: '#ff4d4f', fontSize: 18, cursor: 'pointer' }} />
+                    </Col>
+                  </Row>
+                ))}
+                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} style={{ borderRadius: 10 }}>
+                  Thêm nguyên liệu
+                </Button>
+              </>
+            )}
+          </Form.List>
         </Form>
       </Modal>
 

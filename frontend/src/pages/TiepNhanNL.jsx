@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Tabs, Table, Card, Tag, Space, Typography, Collapse,
   Input, Select, Statistic, Row, Col, Tooltip, Empty,
-  Modal, Form, Button, message, Divider, InputNumber, Popconfirm
+  Modal, Form, Button, message, Divider, InputNumber, Popconfirm, DatePicker
 } from 'antd'
 import {
   CalendarOutlined, CheckCircleOutlined,
@@ -81,6 +81,10 @@ export default function TiepNhanNL() {
   const [pblDetailData, setPblDetailData] = useState(null)
   // Track loại lỗi đã chọn cho mỗi item trong PBL form
   const [pblLoaiLoi, setPblLoaiLoi] = useState({})
+  // Bộ lọc ngày
+  const [filterDate, setFilterDate] = useState(null)
+  // Preview phiếu nhập kho
+  const [previewModal, setPreviewModal] = useState({ open: false, phieu: null })
 
   // ===== TIẾP NHẬN =====
   const handleBatDauKiem = (maPhieu) => {
@@ -107,6 +111,7 @@ export default function TiepNhanNL() {
       setTiepNhanData(prev => ({ ...prev, [phieu.maPhieu]: { status: 'DaNhapKho' } }))
       setLichSuPhieu(prev => prev.map(p => p.maPhieu === phieu.maPhieu ? { ...p, trangThai: 'HoanThanh' } : p))
       message.success('Khớp 100%! Đã xác nhận nhập kho.')
+      setPreviewModal({ open: true, phieu })
     }
   }
 
@@ -191,11 +196,21 @@ export default function TiepNhanNL() {
       label: <span><ImportOutlined style={{ marginRight: 6 }} />Tiếp nhận hàng</span>,
       children: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <Card style={glassCard} styles={{ body: { padding: '12px 16px' } }}>
+            <Space>
+              <Text type="secondary">Lọc theo ngày:</Text>
+              <DatePicker placeholder="Tất cả ngày"
+                onChange={(date) => setFilterDate(date ? date.format('YYYY-MM-DD') : null)}
+                allowClear style={{ borderRadius: 10, width: 160 }} />
+            </Space>
+          </Card>
           {lichSuPhieu.length === 0 ? (
             <Card style={glassCard}><Empty description="Chưa có phiếu đặt hàng nào để tiếp nhận" /></Card>
           ) : (() => {
+            const filteredPhieu = filterDate ? lichSuPhieu.filter(p => p.ngay === filterDate) : lichSuPhieu
+            if (filteredPhieu.length === 0) return <Card style={glassCard}><Empty description="Không có phiếu nào trong ngày này" /></Card>
             const phieuByDate = {}
-            lichSuPhieu.forEach(p => {
+            filteredPhieu.forEach(p => {
               if (!phieuByDate[p.ngay]) phieuByDate[p.ngay] = []
               phieuByDate[p.ngay].push(p)
             })
@@ -436,6 +451,82 @@ export default function TiepNhanNL() {
               ]} />
           </>
         )}
+      </Modal>
+
+      {/* ===== Preview phiếu nhập kho ===== */}
+      <Modal
+        title={previewModal.phieu && (
+          <Space>
+            <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />
+            <span style={{ fontSize: 17 }}>Phiếu nhập kho — {previewModal.phieu?.maPhieu}</span>
+            <Tag color="success">Đã nhập kho</Tag>
+          </Space>
+        )}
+        open={previewModal.open}
+        onCancel={() => setPreviewModal({ open: false, phieu: null })}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setPreviewModal({ open: false, phieu: null })}>Đóng</Button>,
+        ]}
+        width={650}
+      >
+        {previewModal.phieu && (() => {
+          const p = previewModal.phieu
+          const tongTien = p.data.reduce((s, r) => s + (r.donGiaNhap || 0) * r.slThucNhap, 0)
+          return (
+            <>
+              <div style={{ background: 'rgba(82,196,26,0.06)', borderRadius: 12, padding: 16, marginBottom: 16, border: '1px solid rgba(82,196,26,0.15)' }}>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Text type="secondary">Mã phiếu</Text>
+                    <div><Text strong style={{ fontSize: 18, color: '#5b8def' }}>{p.maPhieu}</Text></div>
+                  </Col>
+                  <Col span={12}>
+                    <Text type="secondary">Thời gian nhập</Text>
+                    <div><Text strong>{p.thoiGian}</Text></div>
+                  </Col>
+                </Row>
+                <Divider style={{ margin: '12px 0' }} />
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Text type="secondary">Nhà cung cấp</Text>
+                    <div><Text strong>{p.nccTen}</Text></div>
+                  </Col>
+                  <Col span={8}>
+                    <Text type="secondary">SĐT</Text>
+                    <div><Text>{p.nccSdt}</Text></div>
+                  </Col>
+                  <Col span={8}>
+                    <Text type="secondary">Số nguyên liệu</Text>
+                    <div><Tag color="blue">{p.data.length} NL</Tag></div>
+                  </Col>
+                </Row>
+              </div>
+
+              <Divider orientation="left" style={{ fontSize: 14, margin: '8px 0 12px' }}>Chi tiết nguyên liệu</Divider>
+              <Table size="small" pagination={false}
+                dataSource={p.data.map(r => ({ ...r, key: r.ma, thanhTien: (r.donGiaNhap || 0) * r.slThucNhap }))}
+                columns={[
+                  { title: 'Nguyên liệu', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
+                  { title: 'Đơn vị', dataIndex: 'donVi', width: 60, align: 'center' },
+                  { title: 'SL nhập', dataIndex: 'slThucNhap', width: 80, align: 'center', render: v => <Tag color="green">{v}</Tag> },
+                  { title: 'Đơn giá', dataIndex: 'donGiaNhap', width: 120, align: 'right', render: v => v ? formatVND(v) : '—' },
+                  { title: 'Thành tiền', dataIndex: 'thanhTien', width: 130, align: 'right', render: v => <Text strong>{formatVND(v)}</Text> },
+                ]}
+                summary={() => (
+                  <Table.Summary fixed>
+                    <Table.Summary.Row style={{ background: 'rgba(91,141,239,0.05)' }}>
+                      <Table.Summary.Cell index={0} colSpan={4} align="right">
+                        <Text strong style={{ fontSize: 15 }}>TỔNG CỘNG:</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        <Text strong style={{ fontSize: 15, color: '#52c41a' }}>{formatVND(tongTien)}</Text>
+                      </Table.Summary.Cell>
+                    </Table.Summary.Row>
+                  </Table.Summary>
+                )} />
+            </>
+          )
+        })()}
       </Modal>
     </div>
   )

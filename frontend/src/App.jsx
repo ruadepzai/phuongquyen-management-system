@@ -8,7 +8,6 @@ import ThucDon from './pages/ThucDon'
 import NguyenLieu from './pages/NguyenLieu'
 import NhanVien from './pages/NhanVien'
 import BaoCao from './pages/BaoCao'
-import Bep from './pages/Bep'
 import HoaDon from './pages/HoaDon'
 import TiepNhanNL from './pages/TiepNhanNL'
 
@@ -21,7 +20,6 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="don-hang" element={<DonHang />} />
           <Route path="dong-goi" element={<DongGoi />} />
-          <Route path="bep" element={<Bep />} />
           <Route path="thuc-don" element={<ThucDon />} />
           <Route path="nguyen-lieu" element={<NguyenLieu />} />
           <Route path="tiep-nhan-nl" element={<TiepNhanNL />} />

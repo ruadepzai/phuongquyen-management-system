@@ -29,22 +29,20 @@ const currentUser = {
 
 // Menu items với phân quyền
 const allMenuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: 'Tổng quan', roles: ['QuanLy'] },
-  { key: '/don-hang', icon: <ShoppingCartOutlined />, label: 'Đơn hàng', roles: ['QuanLy', 'NVDongGoi', 'ThuNgan'] },
-  { key: '/dong-goi', icon: <InboxOutlined />, label: 'Đóng gói', roles: ['QuanLy', 'NVDongGoi'] },
-  { key: '/bep', icon: <FireOutlined />, label: 'Bếp', roles: ['QuanLy', 'Bep'] },
-  { key: '/thuc-don', icon: <BookOutlined />, label: 'Thực đơn', roles: ['QuanLy'] },
-  { key: '/nguyen-lieu', icon: <DatabaseOutlined />, label: 'Nguyên liệu', roles: ['QuanLy'] },
-  { key: '/hoa-don', icon: <FileTextOutlined />, label: 'Hóa đơn', roles: ['QuanLy', 'ThuNgan'] },
+  { key: '/', icon: <DashboardOutlined />, label: 'Tổng quan', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/don-hang', icon: <ShoppingCartOutlined />, label: 'Đơn hàng', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/dong-goi', icon: <InboxOutlined />, label: 'Đóng gói', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/bep', icon: <FireOutlined />, label: 'Bếp', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/thuc-don', icon: <BookOutlined />, label: 'Thực đơn', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/nguyen-lieu', icon: <DatabaseOutlined />, label: 'Nguyên liệu', roles: ['QuanLy', 'NhanVien'] },
+  { key: '/hoa-don', icon: <FileTextOutlined />, label: 'Hóa đơn', roles: ['QuanLy', 'NhanVien'] },
   { key: '/nhan-vien', icon: <TeamOutlined />, label: 'Nhân viên', roles: ['QuanLy'] },
   { key: '/bao-cao', icon: <BarChartOutlined />, label: 'Báo cáo', roles: ['QuanLy'] },
 ]
 
 const roleLabels = {
   QuanLy: { text: 'Quản lý', color: 'blue' },
-  NVDongGoi: { text: 'NV Đóng gói', color: 'green' },
-  Bep: { text: 'Bếp', color: 'orange' },
-  ThuNgan: { text: 'Thu ngân', color: 'purple' },
+  NhanVien: { text: 'Nhân viên', color: 'green' },
 }
 
 export default function MainLayout() {

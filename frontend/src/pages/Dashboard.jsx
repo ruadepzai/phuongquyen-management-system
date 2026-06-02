@@ -1,11 +1,11 @@
-import { Card, Col, Row, Statistic, Table, Tag, Typography, Space, Divider } from 'antd'
+import { useState } from 'react'
+import { Card, Col, Row, Statistic, Table, Tag, Typography, Space } from 'antd'
 import {
   ShoppingCartOutlined, InboxOutlined, CheckCircleOutlined,
-  ClockCircleOutlined, DollarOutlined, FireOutlined,
-  CalendarOutlined, CarOutlined
+  DollarOutlined, FireOutlined, CalendarOutlined, DownOutlined, RightOutlined
 } from '@ant-design/icons'
 
-const { Text, Title } = Typography
+const { Text } = Typography
 
 function formatVND(value) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
@@ -13,9 +13,40 @@ function formatVND(value) {
 
 // Mock data
 const ordersToday = [
-  { key: '1', maDH: 'HD3-030526', khachHang: 'Lê Hoàng Nam', loai: 'Tiệc sinh nhật', soMam: 5, thoiGian: '17:00', trangThai: 'ChoDongGoi' },
-  { key: '2', maDH: 'HD4-040526', khachHang: 'Phạm Minh Tuấn', loai: 'Cỗ cưới', soMam: 20, thoiGian: '11:00', trangThai: 'DaThanhToanCoc' },
-  { key: '3', maDH: 'HD5-050526', khachHang: 'Võ Thị Hương', loai: 'Cỗ giỗ', soMam: 10, thoiGian: '08:00', trangThai: 'DaGiao' },
+  {
+    key: '1', maDH: 'HD3-030526', khachHang: 'Lê Hoàng Nam', loai: 'Tiệc sinh nhật', soMam: 5, thoiGian: '17:00', trangThai: 'ChoDongGoi',
+    monAn: [
+      { ten: 'Bò nướng lá lốt', sl: 5, donGia: 400000 },
+      { ten: 'Gỏi cuốn', sl: 5, donGia: 200000 },
+      { ten: 'Cơm chiên', sl: 5, donGia: 180000 },
+      { ten: 'Canh chua cá', sl: 5, donGia: 220000 },
+      { ten: 'Chè thái', sl: 5, donGia: 150000 },
+      { ten: 'Bánh kem', sl: 1, donGia: 1750000 },
+    ],
+  },
+  {
+    key: '2', maDH: 'HD4-040526', khachHang: 'Phạm Minh Tuấn', loai: 'Cỗ cưới', soMam: 20, thoiGian: '11:00', trangThai: 'DaThanhToanCoc',
+    monAn: [
+      { ten: 'Gà hấp hành', sl: 20, donGia: 380000 },
+      { ten: 'Nem cuốn', sl: 20, donGia: 220000 },
+      { ten: 'Bò xào lúc lắc', sl: 20, donGia: 450000 },
+      { ten: 'Xôi gấc', sl: 20, donGia: 150000 },
+      { ten: 'Chè hạt sen', sl: 20, donGia: 200000 },
+      { ten: 'Hoa quả dĩa', sl: 20, donGia: 100000 },
+      { ten: 'Nước uống', sl: 20, donGia: 300000 },
+    ],
+  },
+  {
+    key: '3', maDH: 'HD5-050526', khachHang: 'Võ Thị Hương', loai: 'Cỗ giỗ', soMam: 10, thoiGian: '08:00', trangThai: 'DaGiao',
+    monAn: [
+      { ten: 'Gà luộc', sl: 10, donGia: 350000 },
+      { ten: 'Xôi gấc', sl: 10, donGia: 150000 },
+      { ten: 'Giò chả', sl: 10, donGia: 250000 },
+      { ten: 'Canh măng', sl: 10, donGia: 180000 },
+      { ten: 'Nem rán', sl: 10, donGia: 200000 },
+      { ten: 'Chè kho', sl: 10, donGia: 250000 },
+    ],
+  },
 ]
 
 const cookingPlan = [
@@ -57,10 +88,24 @@ export default function Dashboard() {
     },
   ]
 
+  // Expandable row to show menu items
+  const expandedRowRender = (record) => {
+    const monCols = [
+      { title: 'Tên món', dataIndex: 'ten', render: v => <Text strong>{v}</Text> },
+      { title: 'SL', dataIndex: 'sl', width: 60, align: 'center' },
+      { title: 'Đơn giá', dataIndex: 'donGia', width: 120, align: 'right', render: v => formatVND(v) },
+      { title: 'Thành tiền', key: 'tt', width: 130, align: 'right', render: (_, r) => <Text strong style={{ color: '#52c41a' }}>{formatVND(r.sl * r.donGia)}</Text> },
+    ]
+    return (
+      <Table columns={monCols} dataSource={record.monAn.map((m, i) => ({ ...m, key: i }))}
+        pagination={false} size="small" style={{ margin: '0 0 0 24px' }} />
+    )
+  }
+
   const cookColumns = [
     { title: 'Tên món', dataIndex: 'tenMon', render: v => <Text strong>{v}</Text> },
-    { title: 'Tổng mâm', dataIndex: 'tongMam', width: 90, align: 'center', render: v => <Tag color="blue" style={{ borderRadius: 8, fontWeight: 700 }}>{v}</Tag> },
-    { title: 'NL', dataIndex: 'daDat', width: 100, align: 'center', render: v => v ? <Tag color="success">Đã đặt</Tag> : <Tag color="warning">Chưa đặt</Tag> },
+    { title: 'Mâm', dataIndex: 'tongMam', width: 60, align: 'center', render: v => <Tag color="blue" style={{ borderRadius: 8, fontWeight: 700 }}>{v}</Tag> },
+    { title: 'NL', dataIndex: 'daDat', width: 80, align: 'center', render: v => v ? <Tag color="success">Đã đặt</Tag> : <Tag color="warning">Chưa</Tag> },
   ]
 
   const nlColumns = [
@@ -106,19 +151,26 @@ export default function Dashboard() {
 
       {/* Tables row */}
       <Row gutter={[20, 20]}>
-        {/* Đơn hàng trong ngày */}
-        <Col xs={24} lg={14}>
+        {/* Đơn hàng trong ngày - expandable */}
+        <Col xs={24} lg={16}>
           <Card className="glass-effect" style={{ borderRadius: 16 }}
             title={<Space><CalendarOutlined style={{ color: 'var(--primary)' }} /><Text strong>Đơn hàng giao hôm nay</Text></Space>}>
             <Table columns={orderColumns} dataSource={ordersToday}
-              pagination={false} size="small" rowClassName="order-row" />
+              pagination={false} size="small" rowClassName="order-row"
+              expandable={{
+                expandedRowRender,
+                expandRowByClick: true,
+                expandIcon: ({ expanded, onExpand, record }) =>
+                  expanded ? <DownOutlined onClick={e => onExpand(record, e)} style={{ color: 'var(--primary)', cursor: 'pointer' }} />
+                    : <RightOutlined onClick={e => onExpand(record, e)} style={{ color: '#aaa', cursor: 'pointer' }} />,
+              }} />
           </Card>
         </Col>
 
-        {/* Kế hoạch chế biến */}
-        <Col xs={24} lg={10}>
+        {/* Kế hoạch chế biến - thu nhỏ */}
+        <Col xs={24} lg={8}>
           <Card className="glass-effect" style={{ borderRadius: 16 }}
-            title={<Space><FireOutlined style={{ color: '#fa541c' }} /><Text strong>Kế hoạch chế biến hôm nay</Text></Space>}>
+            title={<Space><FireOutlined style={{ color: '#fa541c' }} /><Text strong>Chế biến hôm nay</Text></Space>}>
             <Table columns={cookColumns} dataSource={cookingPlan}
               pagination={false} size="small" rowClassName="order-row" />
           </Card>

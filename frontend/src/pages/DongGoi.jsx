@@ -354,10 +354,13 @@ export default function DongGoi() {
 
   // ==================== ĐÃ CHỌN ĐƠN → Hiển thị chi tiết (UC2 + UC4 + UC6) ====================
   const { done, total } = getProgress(selectedOrder)
-  const allChecked = done === total
+  const dcDone = (selectedOrder.dungCu || []).filter(d => d.checked).length
+  const dcTotal = (selectedOrder.dungCu || []).length
+  const allChecked = done === total && dcDone === dcTotal
   const status = statusMap[selectedOrder.trangThai]
   const hasThieu = selectedOrder.items.some((i) => i.thieu > 0)
   const hasUnresolvedThieu = selectedOrder.items.some((i) => i.thieu > 0 && i.trangThaiBoSung !== 'DaBoSung')
+    || (selectedOrder.dungCu || []).some((d) => d.thieu > 0 && d.trangThaiBoSung !== 'DaBoSung')
 
   return (
     <div className="pack-container">
@@ -393,7 +396,7 @@ export default function DongGoi() {
             className="pack-btn pack-btn-done"
             style={{ height: 44 }}
           >
-            {hasUnresolvedThieu ? 'Có món thiếu chưa bổ sung' : 'Hoàn thành đóng gói'}
+            {hasUnresolvedThieu ? 'Có món/dụng cụ chưa bổ sung' : !allChecked ? 'Chưa kiểm tra hết' : 'Hoàn thành đóng gói'}
           </Button>
         </Space>
       </div>

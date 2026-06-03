@@ -136,17 +136,22 @@ export default function TiepNhanNL() {
     pblForm.validateFields().then(vals => {
       // Validate: phải có ít nhất 1 SL > 0
       let valid = true
-      pblContext.items.forEach((_, i) => {
+      pblContext.items.forEach((item, i) => {
         const loai = vals.items?.[i]?.loaiLoi
         const slT = vals.items?.[i]?.slThieu || 0
         const slH = vals.items?.[i]?.slHong || 0
+        const maxSL = Math.abs(item.chenhLech)
         if (!loai) { valid = false }
         if (loai === 'ThieuHang' && slT <= 0) valid = false
         if (loai === 'HangHong' && slH <= 0) valid = false
         if (loai === 'ThieuVaHong' && slT <= 0 && slH <= 0) valid = false
+        if (loai === 'ThieuVaHong' && (slT + slH) > maxSL) {
+          message.error(`${item.ten}: Tổng SL thiếu (${slT}) + SL hỏng (${slH}) = ${slT + slH} vượt quá chênh lệch (${maxSL})!`)
+          valid = false
+        }
       })
       if (!valid) {
-        message.warning('Vui lòng chọn loại lỗi và nhập số lượng tương ứng!')
+        message.warning('Vui lòng chọn loại lỗi và nhập số lượng hợp lệ!')
         return
       }
 

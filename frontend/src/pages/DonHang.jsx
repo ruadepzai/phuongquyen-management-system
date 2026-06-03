@@ -132,6 +132,7 @@ export default function DonHang() {
 
   const [searchText, setSearchText] = useState('')
   const [filterStatus, setFilterStatus] = useState(null)
+  const [filterDateRange, setFilterDateRange] = useState(null)
   const [detailVisible, setDetailVisible] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orders, setOrders] = useState(mockOrders)
@@ -256,7 +257,13 @@ export default function DonHang() {
       order.khachHang.toLowerCase().includes(searchText.toLowerCase()) ||
       order.sdt.includes(searchText)
     const matchStatus = filterStatus ? order.trangThai === filterStatus : true
-    return matchSearch && matchStatus
+    let matchDate = true
+    if (filterDateRange && filterDateRange[0] && filterDateRange[1]) {
+      const from = filterDateRange[0].format('YYYY-MM-DD')
+      const to = filterDateRange[1].format('YYYY-MM-DD')
+      matchDate = order.ngayGiao >= from && order.ngayGiao <= to
+    }
+    return matchSearch && matchStatus && matchDate
   })
 
   const showDetail = (record) => { setSelectedOrder(record); setDetailVisible(true) }
@@ -322,11 +329,14 @@ export default function DonHang() {
               options={Object.entries(statusConfig).map(([value, cfg]) => ({ value, label: cfg.text }))} />
           </Col>
           <Col xs={12} sm={6}>
-            <RangePicker style={{ width: '100%', borderRadius: 10 }} placeholder={['Từ ngày', 'Đến ngày']} />
+            <RangePicker style={{ width: '100%', borderRadius: 10 }} placeholder={['Từ ngày', 'Đến ngày']}
+              value={filterDateRange}
+              onChange={setFilterDateRange}
+              format="DD/MM/YYYY" />
           </Col>
           <Col xs={24} sm={8} style={{ textAlign: 'right' }}>
             <Space>
-              <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(''); setFilterStatus(null) }} style={{ borderRadius: 10 }}>Làm mới</Button>
+              <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(''); setFilterStatus(null); setFilterDateRange(null) }} style={{ borderRadius: 10 }}>Làm mới</Button>
               {isAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateVisible(true)} style={{ borderRadius: 10 }}>Tạo đơn mới</Button>}
             </Space>
           </Col>

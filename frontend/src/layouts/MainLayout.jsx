@@ -14,7 +14,7 @@ const { Text } = Typography
 
 // Menu items với phân quyền
 const allMenuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: 'Tổng quan', roles: ['QuanLy'] },
+  { key: '/', icon: <DashboardOutlined />, label: 'Tổng quan', roles: ['QuanLy', 'NhanVien'] },
   { key: '/don-hang', icon: <ShoppingCartOutlined />, label: 'Đơn hàng', roles: ['QuanLy', 'NhanVien'] },
   { key: '/dong-goi', icon: <InboxOutlined />, label: 'Đóng gói', roles: ['QuanLy', 'NhanVien'] },
   { key: '/thuc-don', icon: <BookOutlined />, label: 'Thực đơn', roles: ['QuanLy'] },

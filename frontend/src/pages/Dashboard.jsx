@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, Col, Row, Statistic, Table, Tag, Typography, Space } from 'antd'
 import {
   ShoppingCartOutlined, InboxOutlined, CheckCircleOutlined,
-  DollarOutlined, FireOutlined, CalendarOutlined, DownOutlined, RightOutlined
+  FireOutlined, CalendarOutlined, DownOutlined, RightOutlined
 } from '@ant-design/icons'
 
 const { Text } = Typography
@@ -126,25 +126,19 @@ export default function Dashboard() {
 
       {/* Stat cards */}
       <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
-        <Col xs={12} sm={6}>
+        <Col xs={24} sm={8}>
           <Card bordered={false} className="glass-effect stat-card" style={statCard('#5b8def')}>
             <Statistic title="Đơn hàng hôm nay" value={3} prefix={<ShoppingCartOutlined style={{ color: '#5b8def' }} />} valueStyle={{ color: '#5b8def' }} />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={24} sm={8}>
           <Card bordered={false} className="glass-effect stat-card" style={statCard('#faad14')}>
             <Statistic title="Đang đóng gói" value={1} prefix={<InboxOutlined style={{ color: '#faad14' }} />} valueStyle={{ color: '#faad14' }} />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={24} sm={8}>
           <Card bordered={false} className="glass-effect stat-card" style={statCard('#52c41a')}>
             <Statistic title="Hoàn thành" value={1} prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />} valueStyle={{ color: '#52c41a' }} />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} className="glass-effect stat-card" style={statCard('#722ed1')}>
-            <Statistic title="Doanh thu tháng" value={105600000} prefix={<DollarOutlined style={{ color: '#722ed1' }} />} valueStyle={{ color: '#722ed1' }}
-              formatter={val => new Intl.NumberFormat('vi-VN').format(val / 1000000) + 'tr'} />
           </Card>
         </Col>
       </Row>

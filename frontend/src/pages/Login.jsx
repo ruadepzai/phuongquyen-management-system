@@ -32,7 +32,7 @@ export default function Login() {
           <div className="login-logo-container">
             <Logo size={42} color="white" />
           </div>
-          <Title level={2} style={{ margin: '16px 0 8px 0', fontWeight: 800 }}>Phượng Quyên</Title>
+          <Title level={2} style={{ margin: '16px 0 8px 0', fontWeight: 800 }}>RMS Phượng Quyên</Title>
           <Text type="secondary" style={{ fontSize: 16 }}>Hệ thống Quản lý Đặt cỗ & Đóng gói</Text>
         </div>
 

@@ -72,7 +72,7 @@ export default function MainLayout() {
         style={{ position: 'fixed', height: '100vh', left: 0, top: 0, zIndex: 10 }}>
         <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid var(--glass-border)', gap: 10 }}>
           <Logo size={32} color="var(--primary)" />
-          {!collapsed && <span className="brand-logo">Phượng Quyên</span>}
+          {!collapsed && <span className="brand-logo">RMS Phượng Quyên</span>}
         </div>
         <Menu mode="inline" selectedKeys={[location.pathname]} items={visibleMenuItems}
           onClick={({ key }) => navigate(key)} style={{ marginTop: 12 }} />

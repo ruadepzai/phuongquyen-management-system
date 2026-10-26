@@ -150,10 +150,15 @@ export default function DongGoi() {
 
   const selectedOrder = orders.find((o) => o.key === selectedKey)
 
-  // Tính tiến độ
+  // Tính tiến độ (bao gồm cả danh sách món và dụng cụ chuẩn bị)
   const getProgress = (order) => {
-    const done = order.items.filter((i) => i.checked).length
-    return { done, total: order.items.length }
+    const itemsDone = (order.items || []).filter((i) => i.checked).length
+    const itemsTotal = (order.items || []).length
+    const dcDone = (order.dungCu || []).filter((d) => d.checked).length
+    const dcTotal = (order.dungCu || []).length
+    const done = itemsDone + dcDone
+    const total = itemsTotal + dcTotal
+    return { done, total, itemsDone, itemsTotal, dcDone, dcTotal }
   }
 
   // UC4: Xác nhận 1 món đã đủ số lượng
@@ -326,18 +331,18 @@ export default function DongGoi() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <Text type="secondary">Tiến độ: </Text>
-                        <Text strong style={{ color: done === total ? '#52c41a' : '#faad14' }}>
-                          {done}/{total} món
+                        <Text strong style={{ color: done === total && total > 0 ? '#52c41a' : '#faad14' }}>
+                          {done}/{total}
                         </Text>
                       </div>
 
                       {/* Progress bar mini */}
                       <div style={{ width: 80, height: 6, borderRadius: 3, background: '#eee', overflow: 'hidden' }}>
                         <div style={{
-                          width: `${(done / total) * 100}%`,
+                          width: `${total > 0 ? (done / total) * 100 : 0}%`,
                           height: '100%',
                           borderRadius: 3,
-                          background: done === total ? '#52c41a' : 'var(--primary)',
+                          background: done === total && total > 0 ? '#52c41a' : 'var(--primary)',
                           transition: 'width 0.3s ease',
                         }} />
                       </div>
@@ -353,10 +358,8 @@ export default function DongGoi() {
   }
 
   // ==================== ĐÃ CHỌN ĐƠN → Hiển thị chi tiết (UC2 + UC4 + UC6) ====================
-  const { done, total } = getProgress(selectedOrder)
-  const dcDone = (selectedOrder.dungCu || []).filter(d => d.checked).length
-  const dcTotal = (selectedOrder.dungCu || []).length
-  const allChecked = done === total && dcDone === dcTotal
+  const { done, total, itemsDone, itemsTotal, dcDone, dcTotal } = getProgress(selectedOrder)
+  const allChecked = done === total && total > 0
   const status = statusMap[selectedOrder.trangThai]
   const hasThieu = selectedOrder.items.some((i) => i.thieu > 0)
   const hasUnresolvedThieu = selectedOrder.items.some((i) => i.thieu > 0 && i.trangThaiBoSung !== 'DaBoSung')
@@ -429,8 +432,11 @@ export default function DongGoi() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
               <Text strong style={{ fontSize: 18, color: allChecked ? '#52c41a' : 'var(--primary)' }}>{done}/{total}</Text>
               <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#eee', overflow: 'hidden' }}>
-                <div style={{ width: `${(done / total) * 100}%`, height: '100%', borderRadius: 3, background: allChecked ? '#52c41a' : 'var(--primary)', transition: 'width 0.3s ease' }} />
+                <div style={{ width: `${total > 0 ? (done / total) * 100 : 0}%`, height: '100%', borderRadius: 3, background: allChecked ? '#52c41a' : 'var(--primary)', transition: 'width 0.3s ease' }} />
               </div>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              Món: {itemsDone}/{itemsTotal} • Dụng cụ: {dcDone}/{dcTotal}
             </div>
           </Col>
         </Row>
@@ -446,7 +452,12 @@ export default function DongGoi() {
         {/* Danh sách món */}
         <Col xs={24} lg={12}>
           <Card className="glass-effect" style={{ borderRadius: 16 }}>
-            <Title level={5} style={{ marginBottom: 16 }}>Danh sách món — Kiểm tra & Đóng gói</Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Title level={5} style={{ margin: 0 }}>Danh sách món — Kiểm tra & Đóng gói</Title>
+              <Tag color={itemsDone === itemsTotal ? 'success' : 'processing'} style={{ borderRadius: 10, fontWeight: 600 }}>
+                {itemsDone}/{itemsTotal}
+              </Tag>
+            </div>
             <div className="pack-items-list">
               {selectedOrder.items.map((item) => (
                 <div key={item.id}
@@ -498,7 +509,12 @@ export default function DongGoi() {
         {/* Danh sách dụng cụ */}
         <Col xs={24} lg={12}>
           <Card className="glass-effect" style={{ borderRadius: 16 }}>
-            <Title level={5} style={{ marginBottom: 16 }}>Dụng cụ cần chuẩn bị</Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Title level={5} style={{ margin: 0 }}>Dụng cụ cần chuẩn bị</Title>
+              <Tag color={dcDone === dcTotal ? 'success' : 'processing'} style={{ borderRadius: 10, fontWeight: 600 }}>
+                {dcDone}/{dcTotal}
+              </Tag>
+            </div>
             <div className="pack-items-list">
               {(selectedOrder.dungCu || []).map((dc) => (
                 <div key={dc.id}
